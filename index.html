@@ -42,6 +42,8 @@
   </div>
 
   <div id="cielo-wrap">
+    <div class="capa-fondo"></div>
+    <div class="capa-efectos"></div>
     <svg id="lineas-constelacion"></svg>
     <div id="cielo"></div>
     <div id="vacio-cielo" hidden>Todavía no hay estrellas en este cielo.</div>
@@ -75,20 +77,17 @@
   document.getElementById('titulo-principal').textContent = `Feliz cumple ${primerNombreCumple}`;
 }
 
-/* ----------------------- Estado en memoria (modo demo, sin Supabase) ----------------------- */
 let estrellasDemo = [
-  { id: 'demo-1', nombre: 'Ejemplo', tipo: 'mensaje', mensaje: 'Así se ve una estrella cuando alguien deja un mensaje. Conecta Supabase para ver los mensajes reales aquí. 💫', imagen_url: null, audio_url: null, video_url: null, created_at: new Date().toISOString() },
+  { id: 'demo-1', nombre: 'Ejemplo', email: 'ejemplo@correo.com', tipo: 'mensaje', mensaje: 'Así se ve una estrella cuando alguien deja un mensaje. Conecta Supabase para ver los mensajes reales aquí. 💫', imagen_url: null, audio_url: null, video_url: null, x: 30, y: 32, diseno: 1, created_at: new Date().toISOString() },
+  { id: 'demo-2', nombre: 'Ejemplo', email: 'ejemplo@correo.com', tipo: 'mensaje', mensaje: 'Cuando alguien deja más de una estrella, se agrupan cerca y aparece una línea entre ellas. ✨', imagen_url: null, audio_url: null, video_url: null, x: 38, y: 24, diseno: 2, created_at: new Date().toISOString() },
+  { id: 'demo-3', nombre: 'Otra persona', email: 'otra@correo.com', tipo: 'mensaje', mensaje: 'Cada persona forma su propia constelación en el cielo.', imagen_url: null, audio_url: null, video_url: null, x: 68, y: 62, diseno: 3, created_at: new Date().toISOString() },
 ];
 
-// Flechita decorativa (con animación) que acompaña el nombre de cada
-// persona sobre su grupo de estrellas. Es markup fijo, nunca se mezcla
-// con datos de usuario.
 const SVG_FLECHA_GRUPO = `<svg viewBox="0 0 30 22" width="20" height="15" fill="none" xmlns="http://www.w3.org/2000/svg">
   <line x1="3" y1="19" x2="25" y2="4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
   <path d="M12 4 L25 4 L25 13" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`;
 
-/* ============================= Cargar y pintar estrellas ============================= */
 const cielo = document.getElementById('cielo');
 const vacioCielo = document.getElementById('vacio-cielo');
 const svgLineas = document.getElementById('lineas-constelacion');
@@ -108,164 +107,35 @@ async function obtenerEstrellas(){
   return estrellasDemo;
 }
 
-// Agrupa las estrellas por el nombre de quien las envió (sin distinguir
-// mayúsculas/espacios), conservando el orden de aparición.
-function agruparPorNombre(estrellas){
-  const grupos = [];
-  const indice = new Map();
-  estrellas.forEach((estrella) => {
-    const clave = (estrella.nombre || '').trim().toLowerCase();
-    if (!indice.has(clave)){
-      indice.set(clave, grupos.length);
-      grupos.push({ nombre: estrella.nombre || '?', estrellas: [] });
-    }
-    grupos[indice.get(clave)].estrellas.push(estrella);
-  });
-  return grupos;
-}
-
-// Coloca cada estrella real sobre una de las 32 posiciones fijas de
-// COORDENADAS_ESTRELLAS_FONDO (las estrellas y planetas dibujados en el
-// fondo), de modo que se vean exactamente encima del fondo. Las
-// estrellas de una misma persona se agrupan tomando, para cada persona,
-// las posiciones fijas libres más cercanas entre sí — así el agrupado por
-// remitente sigue siendo prioridad. Si algún día hay más de 32 estrellas
-// en total, las que sobran se acomodan cerca de su grupo con el método
-// anterior (aleatorio con semilla, para que tampoco "bailen" al recargar).
-function calcularPosiciones(estrellas){
-  const anchoCielo = cielo.clientWidth || 1000;
-  const alturaCielo = cielo.clientHeight || Math.round(anchoCielo * (1640 / 2360));
-  const puntos = new Array(estrellas.length);
-  const grupoPorIndice = new Array(estrellas.length);
-  const etiquetas = [];
-  const minDistPct = 8;
-  const colocados = [];
-
-  const grupos = agruparPorNombre(estrellas);
-  let disponibles = COORDENADAS_ESTRELLAS_FONDO.map(p => ({ x: p.x, y: p.y }));
-
-  grupos.forEach((grupo, numeroGrupo) => {
-    const clave = grupo.nombre.trim().toLowerCase();
-    const cantidad = grupo.estrellas.length;
-    let asignados = [];
-
-    if (disponibles.length > 0){
-      // Punto semilla estable para esta persona, elegido entre lo que
-      // quede disponible en ese momento.
-      const randSemilla = prngDesdeTexto('semilla::' + clave);
-      const semilla = disponibles[Math.floor(randSemilla() * disponibles.length)];
-
-      // Tomamos las posiciones libres más cercanas a esa semilla, para
-      // que las estrellas de esta persona queden juntas.
-      const ordenados = disponibles
-        .map((p, idx) => ({ p, idx, d: Math.hypot(p.x - semilla.x, p.y - semilla.y) }))
-        .sort((a, b) => a.d - b.d)
-        .slice(0, Math.min(cantidad, disponibles.length));
-
-      asignados = ordenados.map(o => ({ x: o.p.x, y: o.p.y }));
-      ordenados.map(o => o.idx).sort((a, b) => b - a).forEach(idx => disponibles.splice(idx, 1));
-    }
-
-    // Si ya no quedan posiciones fijas para todas las estrellas de esta
-    // persona, las que faltan se acomodan cerca de las que sí se asignaron.
-    while (asignados.length < cantidad){
-      const centro = asignados[0] || (() => {
-        const r = prngDesdeTexto('centro-extra::' + clave);
-        return { x: 16 + r() * 68, y: 16 + r() * 68 };
-      })();
-      const rand = prngDesdeTexto('extra::' + clave + '::' + asignados.length);
-      let mejor = null;
-      for (let intento = 0; intento < 60; intento++){
-        const angulo = rand() * Math.PI * 2;
-        const radio = 6 + rand() * 10;
-        const x = Math.min(96, Math.max(4, centro.x + Math.cos(angulo) * radio));
-        const y = Math.min(96, Math.max(4, centro.y + Math.sin(angulo) * radio));
-        let distMin = Infinity;
-        for (const p of [...colocados, ...asignados]){
-          const dist = Math.hypot(p.x - x, p.y - y);
-          if (dist < distMin) distMin = dist;
-        }
-        if (distMin >= minDistPct){ mejor = { x, y }; break; }
-        if (!mejor || distMin > (mejor.distMin || 0)) mejor = { x, y, distMin };
-      }
-      asignados.push(mejor);
-    }
-
-    let indiceEtiqueta = null;
-    grupo.estrellas.forEach((estrella, i) => {
-      const punto = asignados[i];
-      colocados.push(punto);
-      const idx = estrellas.indexOf(estrella);
-      puntos[idx] = punto;
-      grupoPorIndice[idx] = numeroGrupo;
-      // Usamos la estrella más alta (menor "y") del grupo como referencia
-      // para poner la etiqueta con el nombre.
-      if (indiceEtiqueta === null || punto.y < puntos[indiceEtiqueta].y) indiceEtiqueta = idx;
-    });
-
-    if (indiceEtiqueta !== null){
-      etiquetas.push({ nombre: grupo.nombre, x: puntos[indiceEtiqueta].x, y: puntos[indiceEtiqueta].y });
-    }
-  });
-
-  return { puntos, alturaCielo, anchoCielo, etiquetas, grupoPorIndice };
-}
-
-function dibujarLineasConstelacion(estrellas, puntos, alturaPx, anchoPx, grupoPorIndice){
-  svgLineas.setAttribute('viewBox', `0 0 ${anchoPx} ${alturaPx}`);
-  svgLineas.innerHTML = '';
-  if (estrellas.length < 2) return;
-  // La cercanía entre estrellas (para decidir qué conectar) se calcula en
-  // el espacio de la IMAGEN original; el resultado se convierte a
-  // píxeles de pantalla recién al dibujar, pasando por mapearPuntoAFondo
-  // (así el recorte de pantalla completa no afecta qué se conecta, solo
-  // dónde se dibuja).
-  const aPx = (punto) => {
-    const m = mapearPuntoAFondo(punto.x, punto.y, anchoPx, alturaPx);
-    return { x: (m.x / 100) * anchoPx, y: (m.y / 100) * alturaPx };
-  };
-  for (let i = 0; i < puntos.length; i++){
-    let distancias = [];
-    for (let j = 0; j < puntos.length; j++){
-      if (i === j) continue;
-      if (grupoPorIndice[j] !== grupoPorIndice[i]) continue; // solo conectamos estrellas de la misma persona
-      const dx = puntos[i].x - puntos[j].x, dy = puntos[i].y - puntos[j].y;
-      distancias.push({ j, d: Math.sqrt(dx*dx + dy*dy) });
-    }
-    distancias.sort((a,b) => a.d - b.d);
-    const vecinos = distancias.slice(0, 2).filter(v => v.d < 26);
-    vecinos.forEach(v => {
-      if (v.j < i) return;
-      const p1 = aPx(puntos[i]), p2 = aPx(puntos[v.j]);
-      const linea = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      linea.setAttribute('x1', p1.x); linea.setAttribute('y1', p1.y);
-      linea.setAttribute('x2', p2.x); linea.setAttribute('y2', p2.y);
-      svgLineas.appendChild(linea);
-    });
-  }
-}
-
 function pintarCielo(estrellas){
   estrellasActuales = estrellas;
   cielo.innerHTML = '';
   vacioCielo.hidden = estrellas.length > 0;
 
-  const { puntos, alturaCielo, anchoCielo, etiquetas, grupoPorIndice } = calcularPosiciones(estrellas);
+  const anchoCielo = cielo.clientWidth || 1000;
+  const alturaCielo = cielo.clientHeight || Math.round(anchoCielo * (IMG_FONDO_ALTO / IMG_FONDO_ANCHO));
 
-  estrellas.forEach((estrella, i) => {
-    const p = mapearPuntoAFondo(puntos[i].x, puntos[i].y, anchoCielo, alturaCielo);
+  estrellas.forEach((estrella) => {
+    const p = mapearPuntoAFondo(estrella.x, estrella.y, anchoCielo, alturaCielo);
     const boton = document.createElement('button');
-    boton.className = 'estrella';
+    boton.className = 'estrella-real propia';
     boton.style.left = p.x + '%';
     boton.style.top = p.y + '%';
+    boton.style.animationDelay = (prngDesdeTexto('anim::' + estrella.id)() * 3).toFixed(2) + 's';
     boton.title = `Estrella de ${estrella.nombre}`;
-    boton.innerHTML = '<span class="forma"></span>';
-    boton.addEventListener('click', () => abrirEstrella(estrella));
+    const img = document.createElement('img');
+    img.src = `assets/estrella-${estrella.diseno || 1}.png`;
+    img.alt = '';
+    boton.appendChild(img);
+    boton.addEventListener('click', () => mostrarEstrellaEnModal(estrella));
     cielo.appendChild(boton);
   });
 
-  etiquetas.forEach((etiqueta) => {
-    const p = mapearPuntoAFondo(etiqueta.x, etiqueta.y, anchoCielo, alturaCielo);
+  const grupos = agruparPorCorreo(estrellas);
+  grupos.forEach((grupo) => {
+    let masAlta = grupo.estrellas[0];
+    grupo.estrellas.forEach((estrella) => { if (estrella.y < masAlta.y) masAlta = estrella; });
+    const p = mapearPuntoAFondo(masAlta.x, masAlta.y, anchoCielo, alturaCielo);
     const div = document.createElement('div');
     div.className = 'etiqueta-grupo';
     div.style.left = p.x + '%';
@@ -274,41 +144,20 @@ function pintarCielo(estrellas){
     const flecha = document.createElement('span');
     flecha.className = 'flecha-grupo';
     flecha.setAttribute('aria-hidden', 'true');
-    flecha.innerHTML = SVG_FLECHA_GRUPO; // markup fijo (no depende de datos de usuario)
+    flecha.innerHTML = SVG_FLECHA_GRUPO;
 
     const nombre = document.createElement('span');
     nombre.className = 'nombre-grupo';
-    nombre.textContent = etiqueta.nombre; // texto de usuario -> siempre por textContent
+    nombre.textContent = grupo.nombre;
 
     div.appendChild(flecha);
     div.appendChild(nombre);
     cielo.appendChild(div);
   });
 
-  dibujarLineasConstelacion(estrellas, puntos, alturaCielo, anchoCielo, grupoPorIndice);
+  dibujarLineasEnSvg(svgLineas, estrellas, anchoCielo, alturaCielo);
 }
 
-/* ============================= Ver estrella ============================= */
-function abrirEstrella(estrella){
-  document.getElementById('ver-remitente').textContent = estrella.nombre;
-  document.getElementById('ver-fecha').textContent = formatearFecha(estrella.created_at);
-
-  const mensajeEl = document.getElementById('ver-mensaje');
-  if (estrella.mensaje){ mensajeEl.textContent = estrella.mensaje; mensajeEl.hidden = false; } else { mensajeEl.hidden = true; mensajeEl.textContent = ''; }
-
-  const img = document.getElementById('ver-foto');
-  if (estrella.imagen_url){ img.src = estrella.imagen_url; img.hidden = false; } else { img.hidden = true; img.src=''; }
-
-  const video = document.getElementById('ver-video');
-  if (estrella.video_url){ video.src = estrella.video_url; video.hidden = false; } else { video.hidden = true; video.pause(); video.src=''; }
-
-  const audio = document.getElementById('ver-audio');
-  if (estrella.audio_url){ audio.src = estrella.audio_url; audio.hidden = false; } else { audio.hidden = true; audio.pause(); audio.src=''; }
-
-  abrirModal('modal-ver-fondo');
-}
-
-/* ============================= Arranque ============================= */
 configurarPantallaAcceso(async () => {
   document.getElementById('app').hidden = false;
   const estrellas = await obtenerEstrellas();

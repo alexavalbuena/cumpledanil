@@ -30,9 +30,15 @@
 <!-- ================= VISTA 1: BIENVENIDA (sin clave) ================= -->
 <div id="vista-bienvenida">
   <div class="encabezado-bienvenida">
-    <img src="assets/titulo-bienvenida.png" alt="Para Dani, un regalo hecho de estrellas nuestras. Toca una estrella para comenzar." class="imagen-titulo-bienvenida" />
+    <img src="assets/titulo-bienvenida.png" alt="Para Dani, un regalo hecho de estrellas nuestras. Toca el cielo para dejar tu estrella." class="imagen-titulo-bienvenida" />
   </div>
-  <div id="cielo-bienvenida"></div>
+  <div id="cielo-bienvenida">
+    <div class="capa-fondo"></div>
+    <div class="capa-efectos"></div>
+    <div id="zona-permitida" class="zona-permitida" hidden></div>
+    <svg id="lineas-constelacion"></svg>
+    <div id="capa-estrellas"></div>
+  </div>
 </div>
 
 <!-- ================= VISTA 2: NOMBRE + ELEGIR TIPO ================= -->
@@ -48,7 +54,12 @@
         <input type="text" id="campo-nombre" maxlength="40" placeholder="¿Quién eres?" />
       </div>
 
-      <p class="agregando-como" id="agregando-como" hidden>Agregando otra estrella como <strong id="nombre-actual-texto"></strong></p>
+      <div class="campo-grupo" id="grupo-correo">
+        <label for="campo-correo">Tu correo</label>
+        <input type="email" id="campo-correo" maxlength="80" placeholder="tu@correo.com" autocomplete="email" />
+      </div>
+
+      <p class="agregando-como" id="agregando-como" hidden>Agregando otra estrella como <strong id="nombre-actual-texto"></strong> <button type="button" id="enlace-cambiar-identidad" class="enlace-cambiar-identidad">(no soy yo)</button></p>
 
       <div class="grid-tipos">
         <button type="button" class="boton-tipo" data-tipo="mensaje"><span class="icono">💬</span>Mensaje</button>
@@ -166,6 +177,18 @@
   </div>
 </div>
 
+<div class="modal-fondo oculto" id="modal-ver-fondo">
+  <div class="modal" id="modal-ver">
+    <button class="modal-cerrar" data-cerrar="modal-ver-fondo">✕</button>
+    <h2 class="remitente" id="ver-remitente"></h2>
+    <p class="fecha" id="ver-fecha"></p>
+    <img class="foto" id="ver-foto" hidden />
+    <video id="ver-video" controls hidden></video>
+    <div class="burbuja-mensaje" id="ver-mensaje" hidden></div>
+    <audio id="ver-audio" controls hidden></audio>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -173,9 +196,6 @@
    dejar un mensaje. El cielo completo (con clave) se ve en index.html. */
 
 const nombreCumple = CONFIG.BIRTHDAY_NAME || 'la cumpleañera';
-// El título de la pantalla de bienvenida ahora es una imagen (assets/titulo-bienvenida.png),
-// así que ya no se genera por JS aquí. Si el nombre de la cumpleañera cambia
-// en el futuro, hay que reemplazar esa imagen a mano.
 document.getElementById('intro-elegir').textContent = `¿Qué le quieres dejar a ${nombreCumple}?`;
 document.getElementById('etiqueta-limite-video').textContent = `Sube un video cortito (máx. ${CONFIG.MAX_VIDEO_MB} MB, ideal ~30 segundos)`;
 
@@ -189,93 +209,186 @@ function mostrarVista(id){
   window.scrollTo(0, 0);
 }
 
-/* ============================= Estrellas decorativas de la bienvenida ============================= */
-// Estas estrellas son solo decorativas (no guardan datos): cualquiera abre
-// el formulario para dejar un mensaje real. Se colocan exactamente sobre
-// las estrellas reales dibujadas en assets/fondo-estrellas.jpg (ver
-// COORDENADAS_ESTRELLAS_FONDO en comun.js), para que combinen con el fondo.
-function generarEstrellasDecorativas(){
-  const contenedor = document.getElementById('cielo-bienvenida');
-  contenedor.innerHTML = '';
-  const anchoContenedor = contenedor.clientWidth;
-  const altoContenedor = contenedor.clientHeight;
+const identidadGuardada = obtenerIdentidadGuardada();
+let nombreActual = identidadGuardada ? identidadGuardada.nombre : '';
+let correoActual = identidadGuardada ? identidadGuardada.correo : '';
+let tipoActual = null;
+let puntoPendiente = null;
+let misEstrellas = [];
+let otrasEstrellas = [];
+const estrellasDemoLocal = [];
+const enviosSesion = [];
+const etiquetasTipo = { mensaje: 'Un mensaje', audio: 'Un audio', video: 'Un video', foto: 'Una foto' };
 
-  // El título de bienvenida (ahora una imagen) flota encima del cielo. Las
-  // estrellas decorativas que caen justo detrás no se "empujan" a un
-  // punto cualquiera (eso las dejaba flotando en cielo vacío, cruzando
-  // las líneas del mapa sin ninguna estrella real debajo); en vez de eso,
-  // se reasignan a la estrella real más cercana que sí esté libre, para
-  // que cada punto donde se puede hacer clic quede siempre exactamente
-  // encima de un dibujo real del fondo.
-  const elementoTitulo = document.querySelector('.imagen-titulo-bienvenida');
-  let zonaTexto = null;
-  if (elementoTitulo){
-    const rectCielo = contenedor.getBoundingClientRect();
-    const r = elementoTitulo.getBoundingClientRect();
-    const margen = 22;
-    zonaTexto = {
-      x1: r.left - rectCielo.left - margen,
-      y1: r.top - rectCielo.top - margen,
-      x2: r.right - rectCielo.left + margen,
-      y2: r.bottom - rectCielo.top + margen,
-    };
-  }
+const cieloBienvenida = document.getElementById('cielo-bienvenida');
+const capaEstrellas = document.getElementById('capa-estrellas');
+const svgLineas = document.getElementById('lineas-constelacion');
+const zonaPermitida = document.getElementById('zona-permitida');
 
-  function estaTapado(p){
-    if (!zonaTexto || !anchoContenedor || !altoContenedor) return false;
-    const px = (p.x / 100) * anchoContenedor;
-    const py = (p.y / 100) * altoContenedor;
-    return px >= zonaTexto.x1 && px <= zonaTexto.x2 && py >= zonaTexto.y1 && py <= zonaTexto.y2;
-  }
-
-  const puntosConPos = COORDENADAS_ESTRELLAS_FONDO.map((punto) => ({
-    punto,
-    p: mapearPuntoAFondo(punto.x, punto.y, anchoContenedor, altoContenedor),
-  }));
-  const libres = puntosConPos.filter((pp) => !estaTapado(pp.p));
-
-  puntosConPos.forEach(({ punto, p }) => {
-    let destino = p;
-    if (estaTapado(p) && libres.length){
-      let mejor = null, mejorDist = Infinity;
-      libres.forEach((l) => {
-        const d = Math.hypot(l.punto.x - punto.x, l.punto.y - punto.y);
-        if (d < mejorDist){ mejorDist = d; mejor = l; }
-      });
-      if (mejor) destino = mejor.p;
-    }
-    const boton = document.createElement('button');
-    boton.className = 'estrella';
-    boton.style.left = destino.x + '%';
-    boton.style.top = destino.y + '%';
-    boton.style.animationDelay = (prngDesdeTexto('anim::' + punto.id)() * 3).toFixed(2) + 's';
-    boton.setAttribute('aria-label', 'Tocar para dejar tu estrella');
-    boton.innerHTML = '<span class="forma"></span>';
-    boton.addEventListener('click', () => mostrarVista('vista-elegir'));
-    contenedor.appendChild(boton);
-  });
+function actualizarCamposIdentidad(){
+  const conocido = !!(nombreActual && correoActual);
+  document.getElementById('grupo-nombre').hidden = conocido;
+  document.getElementById('grupo-correo').hidden = conocido;
+  document.getElementById('agregando-como').hidden = !conocido;
+  if (conocido) document.getElementById('nombre-actual-texto').textContent = nombreActual;
 }
-generarEstrellasDecorativas();
+
+async function cargarCielo(){
+  if (sb){
+    try{
+      const { data, error } = await sb.from('estrellas_publicas').select('id,x,y,diseno,created_at');
+      if (error) throw error;
+      otrasEstrellas = data || [];
+    }catch(err){
+      console.error(err);
+      const { data } = await sb.from('estrellas').select('id,x,y,diseno,created_at');
+      otrasEstrellas = data || [];
+    }
+    if (correoActual){
+      const { data, error } = await sb.from('estrellas').select('*').eq('email', correoActual).order('created_at', { ascending: true });
+      if (!error) misEstrellas = data || [];
+    } else {
+      misEstrellas = [];
+    }
+  } else {
+    otrasEstrellas = estrellasDemoLocal.filter(e => e.email !== correoActual).map(e => ({ id: e.id, x: e.x, y: e.y, diseno: e.diseno }));
+    misEstrellas = correoActual ? estrellasDemoLocal.filter(e => e.email === correoActual) : [];
+  }
+  renderizarCielo();
+}
+
+function renderizarCielo(){
+  capaEstrellas.innerHTML = '';
+  const rect = cieloBienvenida.getBoundingClientRect();
+  const ancho = rect.width, alto = rect.height;
+  const idsPropias = new Set(misEstrellas.map(e => e.id));
+  const otras = otrasEstrellas.filter(e => !idsPropias.has(e.id));
+
+  otras.forEach((estrella) => {
+    const p = mapearPuntoAFondo(estrella.x, estrella.y, ancho, alto);
+    const boton = document.createElement('button');
+    boton.className = 'estrella-real ajena';
+    boton.style.left = p.x + '%';
+    boton.style.top = p.y + '%';
+    boton.style.animationDelay = (prngDesdeTexto('anim::' + estrella.id)() * 3).toFixed(2) + 's';
+    boton.setAttribute('aria-label', 'Estrella de otra persona');
+    const img = document.createElement('img');
+    img.src = `assets/estrella-${estrella.diseno || 1}.png`;
+    img.alt = '';
+    boton.appendChild(img);
+    boton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      mostrarToast('✨ Esa estrella es de otra persona. ¡Es parte de la sorpresa!');
+    });
+    capaEstrellas.appendChild(boton);
+  });
+
+  misEstrellas.forEach((estrella) => {
+    const p = mapearPuntoAFondo(estrella.x, estrella.y, ancho, alto);
+    const boton = document.createElement('button');
+    boton.className = 'estrella-real propia';
+    boton.style.left = p.x + '%';
+    boton.style.top = p.y + '%';
+    boton.style.animationDelay = (prngDesdeTexto('anim::' + estrella.id)() * 3).toFixed(2) + 's';
+    boton.title = 'Tu estrella (toca para verla)';
+    const img = document.createElement('img');
+    img.src = `assets/estrella-${estrella.diseno || 1}.png`;
+    img.alt = '';
+    boton.appendChild(img);
+    boton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      mostrarEstrellaEnModal(estrella);
+    });
+    capaEstrellas.appendChild(boton);
+  });
+
+  dibujarLineasEnSvg(svgLineas, misEstrellas, ancho, alto);
+
+  if (misEstrellas.length > 0){
+    const primera = misEstrellas[0];
+    const p = puntoEstrellaAPx(primera, ancho, alto);
+    const r = CONFIG.RADIO_CONSTELACION_PX;
+    zonaPermitida.hidden = false;
+    zonaPermitida.style.left = p.x + 'px';
+    zonaPermitida.style.top = p.y + 'px';
+    zonaPermitida.style.width = (r * 2) + 'px';
+    zonaPermitida.style.height = (r * 2) + 'px';
+  } else {
+    zonaPermitida.hidden = true;
+  }
+}
+
+function abrirVistaElegir(){
+  actualizarCamposIdentidad();
+  mostrarVista('vista-elegir');
+}
+
+cieloBienvenida.addEventListener('click', (e) => {
+  const rect = cieloBienvenida.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const clickY = e.clientY - rect.top;
+
+  const tituloEl = document.querySelector('.imagen-titulo-bienvenida');
+  if (tituloEl){
+    const r = tituloEl.getBoundingClientRect();
+    const margen = 22;
+    const x1 = r.left - rect.left - margen, y1 = r.top - rect.top - margen;
+    const x2 = r.right - rect.left + margen, y2 = r.bottom - rect.top + margen;
+    if (clickX >= x1 && clickX <= x2 && clickY >= y1 && clickY <= y2){
+      mostrarToast('Ese lugar queda debajo del título. Elige otro punto del cielo ✨');
+      return;
+    }
+  }
+
+  const idsPropias = new Set(misEstrellas.map(x => x.id));
+  const todas = [...misEstrellas, ...otrasEstrellas.filter(x => !idsPropias.has(x.id))];
+  for (const estrella of todas){
+    const p = puntoEstrellaAPx(estrella, rect.width, rect.height);
+    if (Math.hypot(p.x - clickX, p.y - clickY) < CONFIG.ZONA_SEGURIDAD_PX){
+      mostrarToast('Ahí ya hay una estrella. Elige un espacio libre para la tuya ✨');
+      return;
+    }
+  }
+
+  if (misEstrellas.length > 0){
+    const primera = misEstrellas[0];
+    const p = puntoEstrellaAPx(primera, rect.width, rect.height);
+    if (Math.hypot(p.x - clickX, p.y - clickY) > CONFIG.RADIO_CONSTELACION_PX){
+      mostrarToast('Tu próxima estrella debe quedar cerca de tu primera estrella (dentro del círculo dorado) ✨');
+      return;
+    }
+  }
+
+  puntoPendiente = mapearClickAImagen(clickX, clickY, rect.width, rect.height);
+  abrirVistaElegir();
+});
 
 let resizeTimerBienvenida;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimerBienvenida);
-  resizeTimerBienvenida = setTimeout(generarEstrellasDecorativas, 250);
+  resizeTimerBienvenida = setTimeout(() => { if (!document.getElementById('vista-bienvenida').hidden) renderizarCielo(); }, 250);
 });
 
-/* ============================= Estado de la sesión ============================= */
-let nombreActual = '';
-let tipoActual = null;
-const enviosSesion = []; // [{tipo, etiqueta}]
-const etiquetasTipo = { mensaje: 'Un mensaje', audio: 'Un audio', video: 'Un video', foto: 'Una foto' };
+document.getElementById('enlace-cambiar-identidad').addEventListener('click', () => {
+  limpiarIdentidadGuardada();
+  nombreActual = '';
+  correoActual = '';
+  misEstrellas = [];
+  actualizarCamposIdentidad();
+  renderizarCielo();
+  mostrarToast('Listo. Ahora puedes escribir tu nombre y correo de nuevo.');
+});
 
 /* ============================= Elegir tipo ============================= */
 document.querySelectorAll('.boton-tipo').forEach(btn => {
   btn.addEventListener('click', () => {
-    if (enviosSesion.length === 0){
-      const valor = document.getElementById('campo-nombre').value.trim();
-      if (!valor){ mostrarToast('Escribe tu nombre primero.'); return; }
-      nombreActual = valor;
+    if (!nombreActual || !correoActual){
+      const nombreVal = document.getElementById('campo-nombre').value.trim();
+      const correoVal = document.getElementById('campo-correo').value.trim();
+      if (!nombreVal){ mostrarToast('Escribe tu nombre primero.'); return; }
+      if (!esCorreoValido(correoVal)){ mostrarToast('Escribe un correo válido.'); return; }
+      nombreActual = nombreVal;
+      correoActual = correoVal.toLowerCase();
     }
     tipoActual = btn.dataset.tipo;
     abrirVistaContenido(tipoActual);
@@ -291,22 +404,17 @@ function abrirVistaContenido(tipo){
 }
 
 document.getElementById('boton-atras').addEventListener('click', () => {
-  // Al volver, si ya hay un nombre guardado no se vuelve a pedir
-  document.getElementById('grupo-nombre').hidden = enviosSesion.length > 0 || !!nombreActual;
-  document.getElementById('agregando-como').hidden = !(enviosSesion.length > 0 || nombreActual);
-  if (nombreActual) document.getElementById('nombre-actual-texto').textContent = nombreActual;
+  actualizarCamposIdentidad();
   mostrarVista('vista-elegir');
 });
 
 /* Botón "✕" disponible en las vistas de elegir/contenido/repaso: permite
    salir por completo del formulario y volver al mapa de estrellas
    (vista-bienvenida), por si la persona eligió mal y no quiere seguir
-   con esta estrella. Si ya escribió su nombre, no se le vuelve a pedir
-   la próxima vez que toque una estrella. */
+   con esta estrella. */
 function volverAlMapa(){
-  document.getElementById('grupo-nombre').hidden = enviosSesion.length > 0 || !!nombreActual;
-  document.getElementById('agregando-como').hidden = !(enviosSesion.length > 0 || nombreActual);
-  if (nombreActual) document.getElementById('nombre-actual-texto').textContent = nombreActual;
+  actualizarCamposIdentidad();
+  puntoPendiente = null;
   mostrarVista('vista-bienvenida');
 }
 document.querySelectorAll('.cerrar-mapa').forEach(btn => btn.addEventListener('click', volverAlMapa));
@@ -414,8 +522,6 @@ botonGrabar.addEventListener('click', async () => {
 });
 
 /* ============================= Envío ============================= */
-let estrellasDemo = [];
-
 function limpiarCampos(){
   document.getElementById('formulario-estrella').reset();
   previsualizacionImagen.hidden = true; previsualizacionImagen.innerHTML = '';
@@ -472,6 +578,12 @@ document.getElementById('boton-editar-repaso').addEventListener('click', () => {
 });
 
 document.getElementById('boton-confirmar-envio').addEventListener('click', async () => {
+  if (!puntoPendiente){
+    mostrarToast('Elige primero un lugar en el cielo.');
+    volverAlMapa();
+    return;
+  }
+
   let mensaje = null, imagen_url = null, audio_url = null, video_url = null;
   if (tipoActual === 'mensaje') mensaje = campoMensaje.value.trim();
 
@@ -480,6 +592,8 @@ document.getElementById('boton-confirmar-envio').addEventListener('click', async
   botonConfirmar.textContent = 'Enviando...';
 
   try{
+    const diseno = elegirDisenoAleatorio();
+
     if (sb){
       if (tipoActual === 'foto') imagen_url = await subirArchivo(CONFIG.BUCKET_IMAGENES, campoImagen.files[0], campoImagen.files[0].name);
       if (tipoActual === 'video') video_url = await subirArchivo(CONFIG.BUCKET_VIDEOS, campoVideo.files[0], campoVideo.files[0].name);
@@ -488,13 +602,26 @@ document.getElementById('boton-confirmar-envio').addEventListener('click', async
         else audio_url = await subirArchivo(CONFIG.BUCKET_AUDIOS, campoAudioArchivo.files[0], campoAudioArchivo.files[0].name);
       }
 
-      const { error } = await sb.from('estrellas').insert([{ nombre: nombreActual, tipo: tipoActual, mensaje, imagen_url, audio_url, video_url }]);
+      const fila = { nombre: nombreActual, email: correoActual, tipo: tipoActual, mensaje, imagen_url, audio_url, video_url, x: puntoPendiente.x, y: puntoPendiente.y, diseno };
+      const { data, error } = await sb.from('estrellas').insert([fila]).select();
       if (error) throw error;
+      if (data && data[0]) misEstrellas.push(data[0]);
     } else {
-      estrellasDemo.push({ nombre: nombreActual, tipo: tipoActual });
+      if (tipoActual === 'foto') imagen_url = URL.createObjectURL(campoImagen.files[0]);
+      if (tipoActual === 'video') video_url = URL.createObjectURL(campoVideo.files[0]);
+      if (tipoActual === 'audio') audio_url = URL.createObjectURL(audioBlobGrabado || campoAudioArchivo.files[0]);
+      const filaDemo = {
+        id: 'demo-' + Date.now() + '-' + Math.random().toString(16).slice(2),
+        nombre: nombreActual, email: correoActual, tipo: tipoActual, mensaje, imagen_url, audio_url, video_url,
+        x: puntoPendiente.x, y: puntoPendiente.y, diseno, created_at: new Date().toISOString(),
+      };
+      estrellasDemoLocal.push(filaDemo);
+      misEstrellas.push(filaDemo);
     }
 
+    guardarIdentidad(nombreActual, correoActual);
     enviosSesion.push({ tipo: tipoActual });
+    puntoPendiente = null;
     mostrarConfirmacion();
   } catch(err){
     console.error(err);
@@ -520,11 +647,12 @@ function mostrarConfirmacion(){
 document.getElementById('boton-enviar-otra').addEventListener('click', () => {
   limpiarCampos();
   tipoActual = null;
-  document.getElementById('grupo-nombre').hidden = true;
-  document.getElementById('agregando-como').hidden = false;
-  document.getElementById('nombre-actual-texto').textContent = nombreActual;
+  actualizarCamposIdentidad();
+  renderizarCielo();
   mostrarVista('vista-bienvenida');
 });
+
+cargarCielo();
 </script>
 </body>
 </html>

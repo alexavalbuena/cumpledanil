@@ -1,64 +1,5 @@
-/* =========================================================================
-   COMUN.JS — funciones compartidas entre enviar.html y index.html (cielo).
-   No necesitas editar este archivo: los ajustes se hacen en config.js
-   ========================================================================= */
-
-// Tamaño real (en px) de assets/fondo-estrellas.jpg. El cielo se muestra a
-// pantalla completa, así que casi nunca tiene las mismas proporciones que
-// la imagen — mapearPuntoAFondo() usa este tamaño para calcular qué parte
-// de la imagen recorta background-size:cover en cada pantalla.
 const IMG_FONDO_ANCHO = 2360, IMG_FONDO_ALTO = 1640;
 
-// Coordenadas (en % de ancho/alto de la IMAGEN, no de la pantalla) de los
-// 32 elementos clickeables dibujados en assets/fondo-estrellas.jpg: 29
-// estrellas (id 1-29) y 3 planetas/lunas (id 30-32, los círculos con
-// textura de cráteres). Se tratan exactamente igual — se usan para que
-// las estrellas clickeables (tanto las decorativas de enviar.html como
-// las reales de index.html) queden exactamente sobre los dibujos de la
-// ilustración — siempre pasadas por mapearPuntoAFondo() antes de
-// dibujarlas, para corregir el recorte de pantalla completa.
-const COORDENADAS_ESTRELLAS_FONDO = [
-  { id: 1, x: 17.5, y: 8.0 },
-  { id: 2, x: 54.6, y: 10.2 },
-  { id: 3, x: 26.4, y: 14.6 },
-  { id: 4, x: 78.3, y: 21.4 },
-  { id: 5, x: 95.3, y: 20.7 },
-  { id: 6, x: 97.2, y: 21.0 },
-  { id: 7, x: 21.0, y: 27.3 },
-  { id: 8, x: 33.0, y: 24.4 },
-  { id: 9, x: 40.4, y: 25.7 },
-  { id: 10, x: 94.6, y: 22.9 },
-  { id: 11, x: 31.9, y: 29.6 },
-  { id: 12, x: 90.6, y: 28.0 },
-  { id: 13, x: 17.9, y: 34.5 },
-  { id: 14, x: 52.9, y: 35.0 },
-  { id: 15, x: 40.3, y: 39.1 },
-  { id: 16, x: 65.1, y: 40.9 },
-  { id: 17, x: 37.3, y: 46.9 },
-  { id: 18, x: 49.7, y: 42.7 },
-  { id: 19, x: 44.2, y: 50.8 },
-  { id: 20, x: 60.2, y: 50.5 },
-  { id: 21, x: 45.0, y: 61.5 },
-  { id: 22, x: 11.2, y: 66.9 },
-  { id: 23, x: 82.6, y: 64.8 },
-  { id: 24, x: 7.9, y: 70.1 },
-  { id: 25, x: 81.2, y: 71.4 },
-  { id: 26, x: 67.9, y: 76.1 },
-  { id: 27, x: 82.6, y: 73.3 },
-  { id: 28, x: 43.8, y: 84.5 },
-  { id: 29, x: 11.7, y: 91.9 },
-  { id: 30, x: 55.2, y: 79.1 },
-  { id: 31, x: 62.2, y: 88.6 },
-  { id: 32, x: 70.4, y: 92.4 },
-];
-
-// Convierte un punto en % de la IMAGEN original (fondo-estrellas.jpg,
-// 2360x1640) a un punto en % del CONTENEDOR donde se muestra esa imagen
-// como fondo con background-size:cover. Cuando el contenedor es pantalla
-// completa, sus proporciones casi nunca son iguales a las de la imagen,
-// así que "cover" recorta una parte — esta función calcula exactamente
-// qué parte se recorta, para que la estrella siga cayendo sobre el mismo
-// lugar de la imagen sin importar el tamaño de pantalla.
 function mapearPuntoAFondo(xImgPct, yImgPct, contenedorAncho, contenedorAlto){
   if (!contenedorAncho || !contenedorAlto) return { x: xImgPct, y: yImgPct };
   const escala = Math.max(contenedorAncho / IMG_FONDO_ANCHO, contenedorAlto / IMG_FONDO_ALTO);
@@ -72,6 +13,30 @@ function mapearPuntoAFondo(xImgPct, yImgPct, contenedorAncho, contenedorAlto){
     x: (px / contenedorAncho) * 100,
     y: (py / contenedorAlto) * 100,
   };
+}
+
+function mapearClickAImagen(clickXpx, clickYpx, contenedorAncho, contenedorAlto){
+  if (!contenedorAncho || !contenedorAlto) return { x: 50, y: 50 };
+  const escala = Math.max(contenedorAncho / IMG_FONDO_ANCHO, contenedorAlto / IMG_FONDO_ALTO);
+  const anchoEscalado = IMG_FONDO_ANCHO * escala;
+  const altoEscalado = IMG_FONDO_ALTO * escala;
+  const offsetX = (contenedorAncho - anchoEscalado) / 2;
+  const offsetY = (contenedorAlto - altoEscalado) / 2;
+  const x = ((clickXpx - offsetX) / anchoEscalado) * 100;
+  const y = ((clickYpx - offsetY) / altoEscalado) * 100;
+  return {
+    x: Math.min(100, Math.max(0, x)),
+    y: Math.min(100, Math.max(0, y)),
+  };
+}
+
+function puntoEstrellaAPx(estrella, contenedorAncho, contenedorAlto){
+  const m = mapearPuntoAFondo(estrella.x, estrella.y, contenedorAncho, contenedorAlto);
+  return { x: (m.x / 100) * contenedorAncho, y: (m.y / 100) * contenedorAlto };
+}
+
+function elegirDisenoAleatorio(){
+  return Math.floor(Math.random() * 3) + 1;
 }
 
 const SUPABASE_CONFIGURADO =
@@ -101,8 +66,6 @@ function formatearFecha(iso){
   }catch(e){ return ''; }
 }
 
-// Generador pseudoaleatorio con semilla, para que cada estrella siempre
-// caiga en la misma posición aunque se recargue la página.
 function prngDesdeTexto(texto){
   let h = 1779033703 ^ texto.length;
   for (let i = 0; i < texto.length; i++){
@@ -117,6 +80,30 @@ function prngDesdeTexto(texto){
   };
 }
 
+function esCorreoValido(valor){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((valor || '').trim());
+}
+
+const CLAVE_IDENTIDAD_GUARDADA = 'cielo_identidad_v1';
+
+function obtenerIdentidadGuardada(){
+  try{
+    const bruto = localStorage.getItem(CLAVE_IDENTIDAD_GUARDADA);
+    if (!bruto) return null;
+    const datos = JSON.parse(bruto);
+    if (datos && datos.nombre && datos.correo) return datos;
+  }catch(e){}
+  return null;
+}
+
+function guardarIdentidad(nombre, correo){
+  try{ localStorage.setItem(CLAVE_IDENTIDAD_GUARDADA, JSON.stringify({ nombre, correo })); }catch(e){}
+}
+
+function limpiarIdentidadGuardada(){
+  try{ localStorage.removeItem(CLAVE_IDENTIDAD_GUARDADA); }catch(e){}
+}
+
 async function subirArchivo(bucket, archivoOBlob, nombreSugerido){
   const ext = (nombreSugerido && nombreSugerido.includes('.')) ? nombreSugerido.split('.').pop() : (archivoOBlob.type && archivoOBlob.type.includes('webm') ? 'webm' : 'dat');
   const ruta = `${crypto.randomUUID()}.${ext}`;
@@ -124,6 +111,69 @@ async function subirArchivo(bucket, archivoOBlob, nombreSugerido){
   if (error) throw error;
   const { data } = sb.storage.from(bucket).getPublicUrl(ruta);
   return data.publicUrl;
+}
+
+function agruparPorCorreo(estrellas){
+  const grupos = [];
+  const indice = new Map();
+  estrellas.forEach((estrella) => {
+    const clave = (estrella.email || '').trim().toLowerCase();
+    if (!indice.has(clave)){
+      indice.set(clave, grupos.length);
+      grupos.push({ correo: clave, nombre: estrella.nombre || '?', estrellas: [] });
+    }
+    grupos[indice.get(clave)].estrellas.push(estrella);
+  });
+  return grupos;
+}
+
+function dibujarLineasEnSvg(svgEl, estrellas, anchoPx, altoPx){
+  svgEl.setAttribute('viewBox', `0 0 ${anchoPx} ${altoPx}`);
+  svgEl.innerHTML = '';
+  if (!estrellas || estrellas.length < 2) return;
+
+  const grupos = agruparPorCorreo(estrellas);
+  grupos.forEach((grupo) => {
+    const lista = grupo.estrellas;
+    if (lista.length < 2) return;
+    for (let i = 0; i < lista.length; i++){
+      const distancias = [];
+      for (let j = 0; j < lista.length; j++){
+        if (i === j) continue;
+        const dx = lista[i].x - lista[j].x, dy = lista[i].y - lista[j].y;
+        distancias.push({ j, d: Math.sqrt(dx*dx + dy*dy) });
+      }
+      distancias.sort((a, b) => a.d - b.d);
+      distancias.slice(0, 2).forEach((v) => {
+        if (v.j < i) return;
+        const p1 = puntoEstrellaAPx(lista[i], anchoPx, altoPx);
+        const p2 = puntoEstrellaAPx(lista[v.j], anchoPx, altoPx);
+        const linea = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        linea.setAttribute('x1', p1.x); linea.setAttribute('y1', p1.y);
+        linea.setAttribute('x2', p2.x); linea.setAttribute('y2', p2.y);
+        svgEl.appendChild(linea);
+      });
+    }
+  });
+}
+
+function mostrarEstrellaEnModal(estrella){
+  document.getElementById('ver-remitente').textContent = estrella.nombre;
+  document.getElementById('ver-fecha').textContent = formatearFecha(estrella.created_at);
+
+  const mensajeEl = document.getElementById('ver-mensaje');
+  if (estrella.mensaje){ mensajeEl.textContent = estrella.mensaje; mensajeEl.hidden = false; } else { mensajeEl.hidden = true; mensajeEl.textContent = ''; }
+
+  const img = document.getElementById('ver-foto');
+  if (estrella.imagen_url){ img.src = estrella.imagen_url; img.hidden = false; } else { img.hidden = true; img.src=''; }
+
+  const video = document.getElementById('ver-video');
+  if (estrella.video_url){ video.src = estrella.video_url; video.hidden = false; } else { video.hidden = true; video.pause(); video.src=''; }
+
+  const audio = document.getElementById('ver-audio');
+  if (estrella.audio_url){ audio.src = estrella.audio_url; audio.hidden = false; } else { audio.hidden = true; audio.pause(); audio.src=''; }
+
+  abrirModal('modal-ver-fondo');
 }
 
 /* ============================= Modales genéricos ============================= */
@@ -151,10 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-/* ============================= Pantalla de acceso (contraseña) =============================
-   Ambas páginas (enviar.html e index.html) usan la misma pantalla de acceso.
-   Cada página llama a configurarPantallaAcceso(callback) y el callback se
-   ejecuta solo si la clave es correcta. */
+/* ============================= Pantalla de acceso (contraseña) ============================= */
 function configurarPantallaAcceso(alEntrar){
   const pantallaAcceso = document.getElementById('pantalla-acceso');
   const inputClave = document.getElementById('input-clave');

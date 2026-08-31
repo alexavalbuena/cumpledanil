@@ -93,12 +93,9 @@ h1,h2,h3{ font-family: var(--fuente-titulo); font-weight:400; line-height:1.5; }
 
 /* ================= APP PRINCIPAL (cielo) ================= */
 #app{ position:relative; z-index:1; min-height:100vh; padding: 0 0 40px; }
-/* El título flota directamente sobre el cielo (sin caja/fondo detrás),
-   igual que las estrellas: solo texto con una sombra suave para que se
-   lea sobre cualquier parte de la ilustración. Va arriba a la izquierda. */
 header.encabezado{
   position:absolute; left: 28px; top: 28px;
-  z-index:3; text-align:left; max-width: min(340px, 55vw); margin:0; pointer-events:none;
+  z-index:6; text-align:left; max-width: min(340px, 55vw); margin:0; pointer-events:none;
 }
 header.encabezado .titulo{
   font-family: var(--fuente-titulo); font-size: 42px; color: var(--crema-texto); margin:0; line-height:1.15;
@@ -110,9 +107,18 @@ header.encabezado .titulo{
    con este truco de márgenes negativos basados en el ancho de ventana. */
 #cielo-wrap{
   position:relative;
-  width: 100vw; margin-left: calc(50% - 50vw);
+  width: 100vw; height: 100vh; margin-left: calc(50% - 50vw);
   margin-top: 24px;
 }
+
+.capa-fondo, .capa-efectos{
+  position:absolute; inset:0;
+  background-size:cover; background-position:center;
+  pointer-events:none;
+}
+.capa-fondo{ background-image: url('assets/fondo.png'); z-index:0; }
+.capa-efectos{ background-image: url('assets/capa-efectos.png'); z-index:1; }
+
 #lineas-constelacion{
   position:absolute; inset:0; width:100%; height:100%; pointer-events:none;
   filter: drop-shadow(0 0 3px rgba(255,216,138,.55));
@@ -120,41 +126,39 @@ header.encabezado .titulo{
 }
 #lineas-constelacion line{ stroke: var(--dorado); stroke-opacity:.6; stroke-width:2; stroke-linecap:round; }
 
-#cielo{
-  position:relative; z-index:1; width:100%; height: 100vh;
-  background-image: url('assets/fondo-estrellas.jpg');
-  background-size: cover; background-position: center;
+.zona-permitida{
+  position:absolute; border:2px dashed rgba(255,216,138,.55); border-radius:50%;
+  transform:translate(-50%,-50%); pointer-events:none; z-index:2;
 }
 
-/* Las estrellas clickeables son "puntos calientes" invisibles que quedan
-   exactamente encima de las estrellas ya dibujadas en el fondo — la
-   estrella que se ve es la de la imagen, no dibujamos otra encima. Al
-   pasar el mouse/tocar, la estrella del fondo se "enciende" con un brillo
-   dorado, para que se note que es interactiva. */
-.estrella{
-  position:absolute; width: 42px; height:42px; transform: translate(-50%,-50%);
+#cielo{ position:absolute; inset:0; z-index:3; }
+
+.estrella-real{
+  position:absolute; width: 56px; height:56px; transform: translate(-50%,-50%);
   display:flex; align-items:center; justify-content:center;
   background:none; border:none; padding:0;
+  animation: titilar 3s ease-in-out infinite;
 }
-.estrella .forma{
-  width:100%; height:100%;
-  border-radius:50%;
-  background: transparent;
-  box-shadow: 0 0 0 0 rgba(255,216,138,0);
-  transition: background .2s ease, box-shadow .2s ease, transform .2s ease;
+.estrella-real img{
+  width:100%; height:100%; object-fit:contain;
+  filter: drop-shadow(0 0 6px rgba(255,216,138,.35));
+  transition: transform .2s ease, filter .2s ease;
 }
-.estrella:hover .forma, .estrella:focus-visible .forma{
-  transform: scale(1.25);
-  background: radial-gradient(circle, rgba(255,232,180,.5), rgba(255,216,138,0) 72%);
-  box-shadow: 0 0 20px 8px rgba(255, 216, 138, .4);
+.estrella-real.propia{ cursor:pointer; }
+.estrella-real.propia:hover img, .estrella-real.propia:focus-visible img{
+  transform: scale(1.18);
+  filter: drop-shadow(0 0 16px rgba(255,216,138,.85));
 }
+.estrella-real.ajena{ opacity:.55; cursor:pointer; }
+.estrella-real.ajena img{ filter: drop-shadow(0 0 4px rgba(180,190,230,.25)); }
+
 @keyframes nacer{ 0%{ transform: scale(0) rotate(-40deg); opacity:0;} 70%{ transform: scale(1.4) rotate(8deg); opacity:1;} 100%{ transform: scale(1) rotate(0);} }
 @keyframes titilar{ 0%,100%{ opacity:1;} 50%{ opacity:.55;} }
 
-#vacio-cielo{ text-align:center; color: var(--texto-tenue); padding: 60px 20px; font-size: 15px; max-width:420px; margin:0 auto; }
+#vacio-cielo{ position:relative; z-index:4; text-align:center; color: var(--texto-tenue); padding: 60px 20px; font-size: 15px; max-width:420px; margin:0 auto; }
 
 .etiqueta-grupo{
-  position:absolute; transform: translate(-6px, -28px); z-index:2;
+  position:absolute; transform: translate(-6px, -28px); z-index:4;
   display:flex; align-items:center; gap:5px;
   color: var(--crema-texto); white-space: nowrap; pointer-events:none;
 }
@@ -252,7 +256,7 @@ header.encabezado .titulo{
 .encabezado-bienvenida{
   /* Se corrió 2cm a la izquierda y 3cm hacia arriba, pero sin pasar de
      un pequeño margen del borde (si no, el texto queda cortado). */
-  position:absolute; z-index:3; top: max(10px, calc(7% - 3cm)); left: max(10px, calc(28px - 2cm));
+  position:absolute; z-index:6; top: max(10px, calc(7% - 3cm)); left: max(10px, calc(28px - 2cm));
   max-width: min(520px, 60vw); text-align:left; pointer-events:none;
 }
 /* El título de bienvenida es una imagen ya diseñada (texto + estilo
@@ -270,13 +274,17 @@ header.encabezado .titulo{
   position:relative;
   width: 100vw; margin-left: calc(50% - 50vw);
   height: 100vh;
-  background-image: url('assets/fondo-estrellas.jpg');
-  background-size: cover; background-position: center;
 }
+#capa-estrellas{ position:absolute; inset:0; z-index:3; }
 
 /* --- Elegir tipo de estrella: cuadrícula de 4 botones --- */
 .agregando-como{ text-align:center; color: var(--texto-tenue); font-size: 13.5px; margin: 0 0 18px; }
 .agregando-como strong{ color: var(--dorado); }
+.enlace-cambiar-identidad{
+  background:none; border:none; color: var(--texto-tenue); font-size: 12px;
+  text-decoration: underline; margin-left: 4px; padding:0;
+}
+.enlace-cambiar-identidad:hover{ color: var(--texto-claro); }
 .grid-tipos{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; }
 .boton-tipo{
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
@@ -298,7 +306,7 @@ video{ width:100%; border-radius: 14px; background:#000; }
 /* --- Formulario agregar --- */
 .campo-grupo{ margin-bottom: 16px; text-align:left; }
 .campo-grupo label{ display:block; font-size: 13.5px; color: var(--texto-tenue); margin-bottom:6px; }
-.campo-grupo input[type="text"], .campo-grupo textarea{
+.campo-grupo input[type="text"], .campo-grupo input[type="email"], .campo-grupo textarea{
   width:100%; padding: 11px 13px; border-radius: 12px; border:1px solid rgba(255,255,255,.16);
   background: rgba(0,0,0,.22); color: var(--texto-claro); font-family: var(--fuente-cuerpo); font-size:15px; outline:none;
 }
@@ -341,7 +349,7 @@ input[type="file"]{ display:none; }
 @media (max-width: 480px){
   header.encabezado{ left: 18px; top: 20px; max-width: min(220px, 58vw); }
   header.encabezado .titulo{ font-size: 28px; }
-  .estrella{ width: 30px; height:30px; }
+  .estrella-real{ width: 40px; height:40px; }
   .encabezado-bienvenida{ left: max(10px, calc(18px - 2cm)); top: max(10px, calc(6% - 3cm)); max-width: min(260px, 78vw); }
   .imagen-titulo-bienvenida{ width: min(260px, 78vw); }
 }

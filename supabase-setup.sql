@@ -27,6 +27,13 @@ alter table estrellas add column if not exists tipo text not null default 'mensa
 alter table estrellas add column if not exists video_url text;
 alter table estrellas alter column mensaje drop not null;
 
+alter table estrellas add column if not exists email text;
+alter table estrellas add column if not exists x numeric;
+alter table estrellas add column if not exists y numeric;
+alter table estrellas add column if not exists diseno smallint;
+
+create index if not exists estrellas_email_idx on estrellas (lower(email));
+
 -- Activamos seguridad a nivel de fila (Row Level Security)
 alter table estrellas enable row level security;
 
@@ -44,6 +51,15 @@ create policy "Cualquiera puede agregar una estrella"
 on estrellas for insert
 to anon
 with check (true);
+
+drop view if exists estrellas_publicas;
+create view estrellas_publicas
+with (security_invoker = true)
+as
+select id, x, y, diseno, created_at
+from estrellas;
+
+grant select on estrellas_publicas to anon;
 
 -- ============================================================
 -- IMPORTANTE: Antes de ejecutar la parte de abajo, primero crea

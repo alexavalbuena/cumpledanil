@@ -1,10 +1,3 @@
-/* =========================================================================
-   CONFIGURACIÓN — este es el único archivo que necesitas editar normalmente.
-   Lo usan tanto enviar.html (donde la gente deja su mensaje) como
-   index.html (el cielo final). Cambia un valor aquí y se actualiza en
-   las dos páginas.
-   Sigue la GUIA-DE-INSTALACION.md para saber de dónde sacar cada valor.
-   ========================================================================= */
 const CONFIG = {
   // Pega aquí la URL y la llave "anon public" de tu proyecto de Supabase
   SUPABASE_URL: "https://vwjzrwzlcctbokfzquci.supabase.co",
@@ -25,4 +18,7 @@ const CONFIG = {
   MAX_IMAGEN_MB: 6,
   MAX_AUDIO_MB: 10,
   MAX_VIDEO_MB: 40,
+
+  ZONA_SEGURIDAD_PX: 64,
+  RADIO_CONSTELACION_PX: 240,
 };
