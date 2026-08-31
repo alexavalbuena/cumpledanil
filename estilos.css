@@ -1,0 +1,347 @@
+/* =========================================================================
+   ESTILOS.CSS — usado por enviar.html y por index.html (cielo).
+   Cambia los colores/tipografías aquí y se actualizan en las dos páginas.
+   ========================================================================= */
+:root{
+  --azul-profundo: #0a1230;
+  --azul-medio: #121c45;
+  --azul-claro: #24336f;
+  --crema: #f6ecd4;
+  --dorado: #ffd88a;
+  --dorado-fuerte: #f4b942;
+  --rosa: #ffb4c6;
+  --texto-claro: #f3f0ff;
+  --texto-tenue: #b9c0e6;
+  --fuente-titulo: 'Beth Ellen', 'Hahmlet', cursive;
+  --fuente-cuerpo: 'Hahmlet', Georgia, serif;
+  --radio: 16px;
+  --modal-stroke: #6081c2;
+  --modal-fill: #0b3174;
+  --boton-claro: #e8eee6;
+  --crema-texto: #FFFBDD;
+}
+
+*{ box-sizing: border-box; }
+html,body{
+  margin:0; padding:0; min-height:100%;
+  background: radial-gradient(ellipse at 50% -10%, var(--azul-claro), var(--azul-profundo) 60%);
+  color: var(--texto-claro);
+  font-family: var(--fuente-cuerpo);
+  overflow-x: hidden;
+}
+button{ font-family: var(--fuente-cuerpo); cursor:pointer; }
+h1,h2,h3{ font-family: var(--fuente-titulo); font-weight:400; line-height:1.5; }
+::selection{ background: var(--dorado); color:#22150a; }
+
+/* ---------- Fondo con textura de mapa estelar ---------- */
+.fondo-textura{
+  position: fixed; inset:0; z-index:0;
+  background-image: url('assets/fondo-estrellas.jpg');
+  background-size: cover;
+  background-position: center;
+  opacity: .22;
+  mix-blend-mode: screen;
+  pointer-events:none;
+}
+.fondo-oscurecer{
+  position: fixed; inset:0; z-index:0;
+  background: linear-gradient(180deg, rgba(10,18,48,.55), rgba(10,18,48,.92) 60%, var(--azul-profundo) 100%);
+  pointer-events:none;
+}
+
+/* ================= PANTALLA DE ACCESO (contraseña) ================= */
+#pantalla-acceso{
+  position: fixed; inset:0; z-index:50;
+  display:flex; align-items:center; justify-content:center;
+  background: var(--azul-profundo);
+  padding: 24px;
+}
+.tarjeta-acceso{
+  position:relative; z-index:1;
+  background: var(--modal-fill);
+  border: 2px solid var(--modal-stroke);
+  border-radius: var(--radio);
+  padding: 36px 28px;
+  max-width: 380px; width:100%;
+  text-align:center;
+  box-shadow: 0 20px 60px rgba(0,0,0,.45);
+}
+.tarjeta-acceso .emoji-grande{ font-size: 40px; display:block; margin-bottom: 10px; }
+.tarjeta-acceso h1{ font-family: var(--fuente-cuerpo); font-size: 30px; color: var(--boton-claro); margin: 0 0 14px; letter-spacing: .5px; }
+.tarjeta-acceso p{ color: var(--texto-tenue); font-size: 14.5px; margin: 0 0 20px; }
+.campo-clave{
+  width:100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.18);
+  background: rgba(0,0,0,.25); color: var(--texto-claro); font-size: 16px; text-align:center;
+  letter-spacing: 2px; margin-bottom: 14px; outline:none;
+}
+.campo-clave:focus{ border-color: var(--dorado); }
+.boton-dorado{
+  width:100%; padding: 12px 16px; border-radius: 12px; border:none;
+  background: var(--boton-claro);
+  color: var(--modal-fill); font-weight:700; font-size: 15px; letter-spacing:.3px;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.boton-dorado:hover{ transform: translateY(-1px); box-shadow: 0 8px 20px rgba(232,238,230,.35); }
+.boton-dorado:active{ transform: translateY(0); }
+.boton-dorado:disabled{ opacity:.6; cursor:not-allowed; transform:none; box-shadow:none; }
+#error-clave{ color:#ff9d9d; font-size:13.5px; margin-top:10px; min-height: 18px; }
+.shake{ animation: shake .35s; }
+@keyframes shake{
+  10%,90%{ transform: translateX(-2px);} 20%,80%{ transform: translateX(4px);}
+  30%,50%,70%{ transform: translateX(-8px);} 40%,60%{ transform: translateX(8px);}
+}
+
+/* ================= APP PRINCIPAL (cielo) ================= */
+#app{ position:relative; z-index:1; min-height:100vh; padding: 0 0 40px; }
+/* El título flota directamente sobre el cielo (sin caja/fondo detrás),
+   igual que las estrellas: solo texto con una sombra suave para que se
+   lea sobre cualquier parte de la ilustración. Va arriba a la izquierda. */
+header.encabezado{
+  position:absolute; left: 28px; top: 28px;
+  z-index:3; text-align:left; max-width: min(340px, 55vw); margin:0; pointer-events:none;
+}
+header.encabezado .titulo{
+  font-family: var(--fuente-titulo); font-size: 42px; color: var(--crema-texto); margin:0; line-height:1.15;
+  text-shadow: 0 2px 10px rgba(0,0,0,.65), 0 0 26px rgba(0,0,0,.45);
+}
+
+/* El cielo se muestra a pantalla completa (no solo al tamaño de la
+   imagen): por eso "rompe" el ancho máximo/padding del contenedor padre
+   con este truco de márgenes negativos basados en el ancho de ventana. */
+#cielo-wrap{
+  position:relative;
+  width: 100vw; margin-left: calc(50% - 50vw);
+  margin-top: 24px;
+}
+#lineas-constelacion{
+  position:absolute; inset:0; width:100%; height:100%; pointer-events:none;
+  filter: drop-shadow(0 0 3px rgba(255,216,138,.55));
+  z-index:2;
+}
+#lineas-constelacion line{ stroke: var(--dorado); stroke-opacity:.6; stroke-width:2; stroke-linecap:round; }
+
+#cielo{
+  position:relative; z-index:1; width:100%; height: 100vh;
+  background-image: url('assets/fondo-estrellas.jpg');
+  background-size: cover; background-position: center;
+}
+
+/* Las estrellas clickeables son "puntos calientes" invisibles que quedan
+   exactamente encima de las estrellas ya dibujadas en el fondo — la
+   estrella que se ve es la de la imagen, no dibujamos otra encima. Al
+   pasar el mouse/tocar, la estrella del fondo se "enciende" con un brillo
+   dorado, para que se note que es interactiva. */
+.estrella{
+  position:absolute; width: 42px; height:42px; transform: translate(-50%,-50%);
+  display:flex; align-items:center; justify-content:center;
+  background:none; border:none; padding:0;
+}
+.estrella .forma{
+  width:100%; height:100%;
+  border-radius:50%;
+  background: transparent;
+  box-shadow: 0 0 0 0 rgba(255,216,138,0);
+  transition: background .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+.estrella:hover .forma, .estrella:focus-visible .forma{
+  transform: scale(1.25);
+  background: radial-gradient(circle, rgba(255,232,180,.5), rgba(255,216,138,0) 72%);
+  box-shadow: 0 0 20px 8px rgba(255, 216, 138, .4);
+}
+@keyframes nacer{ 0%{ transform: scale(0) rotate(-40deg); opacity:0;} 70%{ transform: scale(1.4) rotate(8deg); opacity:1;} 100%{ transform: scale(1) rotate(0);} }
+@keyframes titilar{ 0%,100%{ opacity:1;} 50%{ opacity:.55;} }
+
+#vacio-cielo{ text-align:center; color: var(--texto-tenue); padding: 60px 20px; font-size: 15px; max-width:420px; margin:0 auto; }
+
+.etiqueta-grupo{
+  position:absolute; transform: translate(-6px, -28px); z-index:2;
+  display:flex; align-items:center; gap:5px;
+  color: var(--crema-texto); white-space: nowrap; pointer-events:none;
+}
+.etiqueta-grupo .flecha-grupo{
+  display:inline-flex; color: var(--crema-texto);
+  filter: drop-shadow(0 1px 4px rgba(0,0,0,.85));
+  animation: mover-flecha 1.4s ease-in-out infinite;
+}
+.etiqueta-grupo .flecha-grupo svg{ width: 14px; height: 11px; }
+.etiqueta-grupo .nombre-grupo{
+  font-family: var(--fuente-cuerpo); font-size: 13px; line-height:1; padding-top:1px;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  text-shadow: 0 1px 6px rgba(0,0,0,.9), 0 0 14px rgba(0,0,0,.7);
+}
+@keyframes mover-flecha{
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+
+/* Botón flotante (si alguna página lo usa) */
+#boton-agregar{
+  position: fixed; right: 22px; bottom: 22px; z-index: 30;
+  display:flex; align-items:center; gap:8px;
+  padding: 14px 20px; border-radius: 999px; border:none;
+  background: linear-gradient(135deg, var(--rosa), var(--dorado-fuerte));
+  color:#2a1205; font-weight:700; font-size: 14.5px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.4);
+  transition: transform .15s ease;
+}
+#boton-agregar:hover{ transform: translateY(-2px) scale(1.02); }
+
+/* ================= MODALES ================= */
+.modal-fondo{
+  position: fixed; inset:0; background: rgba(4,8,24,.72); backdrop-filter: blur(3px);
+  display:flex; align-items:center; justify-content:center; z-index: 40; padding: 18px;
+}
+.modal-fondo.oculto{ display:none; }
+.modal{
+  background: var(--modal-fill);
+  border: 2px solid var(--modal-stroke);
+  border-radius: 20px; max-width: 480px; width:100%;
+  max-height: 88vh; overflow-y:auto;
+  padding: 26px 22px 22px; position:relative;
+  box-shadow: 0 30px 80px rgba(0,0,0,.55);
+}
+.modal-cerrar{
+  position:absolute; top:14px; right:14px; background: rgba(255,255,255,.08);
+  border:none; color: var(--texto-claro); width:32px; height:32px; border-radius:50%;
+  font-size:16px; line-height:1;
+}
+.modal-cerrar:hover{ background: rgba(255,255,255,.18); }
+
+/* --- Ver estrella --- */
+#modal-ver .remitente{ font-family: var(--fuente-cuerpo); font-size:26px; color: var(--boton-claro); margin: 0 0 2px; padding-right: 30px; }
+#modal-ver .fecha{ font-size:12.5px; color: var(--texto-tenue); margin:0 0 16px; }
+#modal-ver .burbuja-mensaje{
+  background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+  border-radius: 14px; padding: 16px; white-space: pre-wrap; line-height:1.55; font-size:15px;
+  margin-bottom: 16px;
+}
+#modal-ver img.foto{ width:100%; border-radius:14px; margin-bottom:16px; display:block; }
+#modal-ver audio{ width:100%; margin-bottom:6px; }
+#modal-ver video{ margin-bottom:16px; }
+
+/* --- Tarjeta de formulario (página de enviar) --- */
+.tarjeta-formulario{
+  position:relative; z-index:1; max-width: 480px; margin: 0 auto; padding: 30px 20px 60px;
+}
+.tarjeta-formulario .caja{
+  position:relative;
+  background: var(--modal-fill); border: 2px solid var(--modal-stroke);
+  border-radius: var(--radio); padding: 48px 22px 26px; box-shadow: 0 20px 60px rgba(0,0,0,.4);
+}
+.tarjeta-formulario h1{ font-family: var(--fuente-cuerpo); font-size: 30px; color: var(--boton-claro); margin: 0 0 10px; text-align:center; }
+.tarjeta-formulario .intro{ color: var(--texto-tenue); font-size: 14.5px; text-align:center; margin: 0 0 22px; }
+
+.confirmacion-envio{ text-align:center; padding: 20px 6px; }
+.confirmacion-envio .emoji-grande{ font-size: 44px; display:block; margin-bottom:12px; }
+.confirmacion-envio h2{ font-family: var(--fuente-cuerpo); font-size: 28px; color: var(--boton-claro); margin:0 0 10px; }
+.confirmacion-envio p{ color: var(--texto-tenue); font-size: 14.5px; margin: 0 0 22px; }
+
+/* --- Recibo de estrellas enviadas (página de enviar) --- */
+.lista-envios{ list-style:none; margin: 0 0 22px; padding:0; text-align:left; }
+.lista-envios li{
+  color: var(--texto-claro); font-size: 14px; padding: 8px 12px; margin-bottom:6px;
+  background: rgba(255,255,255,.05); border-radius: 10px; display:flex; align-items:center; gap:8px;
+}
+.lista-envios li .flecha{ color: var(--dorado); font-weight:700; }
+
+/* --- Pantalla de bienvenida (enviar.html, sin clave): cielo con estrellas clickeables ---
+   El título flota directamente sobre la imagen (sin caja/fondo detrás),
+   pegado al lado izquierdo, para que la pantalla completa sea siempre el
+   cielo de estrellas y nunca haga falta bajar/hacer scroll. */
+#vista-bienvenida{ position:relative; z-index:1; height: 100vh; overflow:hidden; }
+.encabezado-bienvenida{
+  /* Se corrió 2cm a la izquierda y 3cm hacia arriba, pero sin pasar de
+     un pequeño margen del borde (si no, el texto queda cortado). */
+  position:absolute; z-index:3; top: max(10px, calc(7% - 3cm)); left: max(10px, calc(28px - 2cm));
+  max-width: min(520px, 60vw); text-align:left; pointer-events:none;
+}
+/* El título de bienvenida es una imagen ya diseñada (texto + estilo
+   incluidos) — se le da un ancho fijo (proporcional a la pantalla) y una
+   relación de aspecto explícita para que el navegador reserve su tamaño
+   correcto desde el primer instante, sin esperar a que la imagen cargue
+   (así el cálculo de qué estrellas hay que correr no se hace con un
+   tamaño equivocado). */
+.imagen-titulo-bienvenida{
+  display:block; width: min(520px, 60vw); aspect-ratio: 924 / 600; height:auto;
+}
+/* Pantalla completa (no solo el tamaño de la imagen): mismo truco de
+   márgenes negativos para que ocupe todo el ancho de la ventana. */
+#cielo-bienvenida{
+  position:relative;
+  width: 100vw; margin-left: calc(50% - 50vw);
+  height: 100vh;
+  background-image: url('assets/fondo-estrellas.jpg');
+  background-size: cover; background-position: center;
+}
+
+/* --- Elegir tipo de estrella: cuadrícula de 4 botones --- */
+.agregando-como{ text-align:center; color: var(--texto-tenue); font-size: 13.5px; margin: 0 0 18px; }
+.agregando-como strong{ color: var(--dorado); }
+.grid-tipos{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; }
+.boton-tipo{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  padding: 22px 10px; border-radius: 16px; border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.04); color: var(--texto-claro); font-size: 14px; font-weight:600;
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+}
+.boton-tipo .icono{ font-size: 28px; }
+.boton-tipo:hover{ transform: translateY(-2px); background: rgba(255,255,255,.08); border-color: var(--dorado); }
+
+.boton-atras{
+  background:none; border:none; color: var(--texto-tenue); font-size: 13.5px;
+  margin-bottom: 14px; padding: 4px 0; text-decoration: underline;
+}
+.boton-atras:hover{ color: var(--texto-claro); }
+
+video{ width:100%; border-radius: 14px; background:#000; }
+
+/* --- Formulario agregar --- */
+.campo-grupo{ margin-bottom: 16px; text-align:left; }
+.campo-grupo label{ display:block; font-size: 13.5px; color: var(--texto-tenue); margin-bottom:6px; }
+.campo-grupo input[type="text"], .campo-grupo textarea{
+  width:100%; padding: 11px 13px; border-radius: 12px; border:1px solid rgba(255,255,255,.16);
+  background: rgba(0,0,0,.22); color: var(--texto-claro); font-family: var(--fuente-cuerpo); font-size:15px; outline:none;
+}
+.campo-grupo input:focus, .campo-grupo textarea:focus{ border-color: var(--dorado); }
+.campo-grupo textarea{ resize: vertical; min-height: 90px; }
+.contador-caracteres{ text-align:right; font-size:11.5px; color: var(--texto-tenue); margin-top:4px; }
+
+.fila-opciones{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 10px; }
+.boton-secundario{
+  flex:1; min-width: 130px; padding: 10px 12px; border-radius: 12px; border:1px dashed rgba(255,255,255,.28);
+  background: rgba(255,255,255,.04); color: var(--texto-claro); font-size: 13.5px; text-align:center;
+}
+.boton-secundario:hover{ background: rgba(255,255,255,.09); }
+.boton-secundario.activo{ border-style: solid; border-color: var(--dorado); color: var(--dorado); }
+input[type="file"]{ display:none; }
+
+.previsualizacion{ margin-top:8px; font-size:13px; color: var(--texto-tenue); display:flex; align-items:center; gap:8px; }
+.previsualizacion img{ width:46px; height:46px; object-fit:cover; border-radius:8px; }
+.quitar-archivo{ background:none; border:none; color:#ff9d9d; font-size:12.5px; text-decoration:underline; }
+
+#grabacion-estado{ font-size:13px; color: var(--texto-tenue); margin-top:6px; }
+.punto-grabando{ display:inline-block; width:9px; height:9px; border-radius:50%; background:#ff5d5d; margin-right:6px; animation: titilar 1s infinite; }
+
+/* ---------- Toast ---------- */
+#toast{
+  position: fixed; left:50%; bottom: 90px; transform: translateX(-50%) translateY(20px);
+  background: rgba(20,26,60,.95); border:1px solid rgba(255,255,255,.15);
+  color: var(--texto-claro); padding: 12px 18px; border-radius: 12px; font-size: 14px;
+  z-index: 60; opacity:0; pointer-events:none; transition: all .25s ease;
+  max-width: 90vw; text-align:center;
+}
+#toast.mostrar{ opacity:1; transform: translateX(-50%) translateY(0); }
+
+.aviso-demo{
+  max-width: 640px; margin: 18px auto; background: rgba(255,180,120,.12);
+  border: 1px solid rgba(255,180,120,.35); color:#ffd9ad; font-size: 13px;
+  padding: 10px 14px; border-radius: 12px; text-align:center; position:relative; z-index:2;
+}
+
+@media (max-width: 480px){
+  header.encabezado{ left: 18px; top: 20px; max-width: min(220px, 58vw); }
+  header.encabezado .titulo{ font-size: 28px; }
+  .estrella{ width: 30px; height:30px; }
+  .encabezado-bienvenida{ left: max(10px, calc(18px - 2cm)); top: max(10px, calc(6% - 3cm)); max-width: min(260px, 78vw); }
+  .imagen-titulo-bienvenida{ width: min(260px, 78vw); }
+}
