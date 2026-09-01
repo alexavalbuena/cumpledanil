@@ -109,8 +109,26 @@ async function subirArchivo(bucket, archivoOBlob, nombreSugerido){
   const ruta = `${crypto.randomUUID()}.${ext}`;
   const { error } = await sb.storage.from(bucket).upload(ruta, archivoOBlob);
   if (error) throw error;
-  const { data } = sb.storage.from(bucket).getPublicUrl(ruta);
-  return data.publicUrl;
+  return ruta;
+}
+
+function extraerRutaStorage(valor){
+  const marcador = '/object/public/';
+  const idx = valor.indexOf(marcador);
+  if (idx === -1) return valor;
+  const resto = valor.slice(idx + marcador.length);
+  const barra = resto.indexOf('/');
+  return barra === -1 ? resto : resto.slice(barra + 1);
+}
+
+async function resolverUrlFirmada(bucket, valor){
+  if (!valor) return null;
+  if (!sb) return valor;
+  const ruta = extraerRutaStorage(valor);
+  const segundos = (typeof CONFIG !== 'undefined' && CONFIG.URL_FIRMADA_SEGUNDOS) || 3600;
+  const { data, error } = await sb.storage.from(bucket).createSignedUrl(ruta, segundos);
+  if (error){ console.error(error); return null; }
+  return data.signedUrl;
 }
 
 function agruparPorCorreo(estrellas){
@@ -157,7 +175,7 @@ function dibujarLineasEnSvg(svgEl, estrellas, anchoPx, altoPx){
   });
 }
 
-function mostrarEstrellaEnModal(estrella){
+async function mostrarEstrellaEnModal(estrella){
   document.getElementById('ver-remitente').textContent = estrella.nombre;
   document.getElementById('ver-fecha').textContent = formatearFecha(estrella.created_at);
 
@@ -165,15 +183,26 @@ function mostrarEstrellaEnModal(estrella){
   if (estrella.mensaje){ mensajeEl.textContent = estrella.mensaje; mensajeEl.hidden = false; } else { mensajeEl.hidden = true; mensajeEl.textContent = ''; }
 
   const img = document.getElementById('ver-foto');
-  if (estrella.imagen_url){ img.src = estrella.imagen_url; img.hidden = false; } else { img.hidden = true; img.src=''; }
-
   const video = document.getElementById('ver-video');
-  if (estrella.video_url){ video.src = estrella.video_url; video.hidden = false; } else { video.hidden = true; video.pause(); video.src=''; }
-
   const audio = document.getElementById('ver-audio');
-  if (estrella.audio_url){ audio.src = estrella.audio_url; audio.hidden = false; } else { audio.hidden = true; audio.pause(); audio.src=''; }
+  img.hidden = true; img.src = '';
+  video.hidden = true; video.pause(); video.src = '';
+  audio.hidden = true; audio.pause(); audio.src = '';
 
   abrirModal('modal-ver-fondo');
+
+  if (estrella.imagen_url){
+    const url = await resolverUrlFirmada(CONFIG.BUCKET_IMAGENES, estrella.imagen_url);
+    if (url){ img.src = url; img.hidden = false; }
+  }
+  if (estrella.video_url){
+    const url = await resolverUrlFirmada(CONFIG.BUCKET_VIDEOS, estrella.video_url);
+    if (url){ video.src = url; video.hidden = false; }
+  }
+  if (estrella.audio_url){
+    const url = await resolverUrlFirmada(CONFIG.BUCKET_AUDIOS, estrella.audio_url);
+    if (url){ audio.src = url; audio.hidden = false; }
+  }
 }
 
 /* ============================= Modales genéricos ============================= */

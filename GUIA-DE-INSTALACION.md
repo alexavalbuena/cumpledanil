@@ -56,10 +56,12 @@ Si ya habías creado el proyecto antes de este cambio (con la versión anterior 
 ## Paso 3 — Crear los buckets de almacenamiento (para fotos, audios y videos)
 
 1. En el menú lateral, ve a **Storage**.
-2. Clic en **New bucket** → nombre `imagenes` → activa **"Public bucket"** → crear.
-3. Repite: **New bucket** → nombre `audios` → activa **"Public bucket"** → crear.
-4. Repite otra vez: **New bucket** → nombre `videos` → activa **"Public bucket"** → crear.
+2. Clic en **New bucket** → nombre `imagenes` → **sin** activar "Public bucket" → crear.
+3. Repite: **New bucket** → nombre `audios` → sin activar "Public bucket" → crear.
+4. Repite otra vez: **New bucket** → nombre `videos` → sin activar "Public bucket" → crear.
 5. Si pegaste el archivo `supabase-setup.sql` completo en el paso 2, las políticas para estos tres buckets ya quedaron creadas y no necesitas hacer nada más aquí. Si no, vuelve al **SQL Editor** y ejecuta de nuevo el archivo completo — es seguro correrlo más de una vez.
+
+Los buckets quedan **privados a propósito**: el sitio no usa links públicos fijos para las fotos/audios/videos, sino links firmados que se generan al momento (válidos por un rato, configurable con `URL_FIRMADA_SEGUNDOS` en `config.js`) — así nadie puede ver un archivo a menos que abra esa estrella desde el sitio. Si ya habías creado los buckets como públicos antes de este cambio, entra a cada uno → editar → desactiva "Public bucket"; no hace falta volver a subir nada, los archivos que ya están ahí van a seguir funcionando.
 
 ## Paso 4 — Copiar tus llaves de conexión
 
@@ -87,6 +89,7 @@ Si ya habías creado el proyecto antes de este cambio (con la versión anterior 
    - `MAX_VIDEO_MB`: el tamaño máximo de video que se puede subir (por defecto 40 MB, pensado para clips cortos de ~30 segundos).
    - `ZONA_SEGURIDAD_PX`: qué tan separadas deben quedar dos estrellas en pantalla para que no se encimen (por defecto 64).
    - `RADIO_CONSTELACION_PX`: qué tan lejos de su primera estrella puede alguien poner las siguientes (por defecto 240). Si quieres constelaciones más grandes o más juntas, sube o baja este número.
+   - `URL_FIRMADA_SEGUNDOS`: cuánto dura activo el link de una foto/audio/video antes de que haya que generarlo de nuevo (por defecto 3600 = 1 hora). El sitio lo vuelve a generar solo cada vez que alguien abre esa estrella, así que no necesitas tocar esto salvo que quieras que dure más o menos.
 
 Como `config.js` es un solo archivo compartido, con editarlo una vez ya quedan conectadas las dos páginas.
 

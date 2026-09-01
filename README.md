@@ -41,7 +41,7 @@ Reglas al colocar una estrella nueva (en `enviar.html`):
 La guía completa, pensada para alguien sin experiencia técnica, está en [`GUIA-DE-INSTALACION.md`](./GUIA-DE-INSTALACION.md). En resumen:
 
 1. Crear un proyecto en Supabase y correr `supabase-setup.sql` en su SQL Editor (crea la tabla `estrellas`, la vista `estrellas_publicas` y los permisos).
-2. Crear los buckets públicos `imagenes`, `audios` y `videos` en Supabase Storage.
+2. Crear los buckets privados `imagenes`, `audios` y `videos` en Supabase Storage (el sitio genera links firmados temporales para mostrarlos, no usa links públicos fijos).
 3. Completar `config.js` con la URL y la llave "anon" del proyecto de Supabase, la clave de acceso y el nombre de quien cumple años.
 4. Publicar la carpeta completa en GitHub Pages, Netlify o el hosting que prefieras.
 
@@ -50,6 +50,7 @@ La guía completa, pensada para alguien sin experiencia técnica, está en [`GUI
 - **Colores y tipografías**: en `estilos.css`, dentro de `:root{ ... }`.
 - **Textos, clave de acceso, límites de archivo**: en `config.js`.
 - **Qué tan separadas deben quedar las estrellas / qué tan grande puede ser una constelación**: `ZONA_SEGURIDAD_PX` y `RADIO_CONSTELACION_PX` en `config.js`.
+- **Cuánto dura activo el link de una foto/audio/video**: `URL_FIRMADA_SEGUNDOS` en `config.js`.
 
 ## Privacidad
 
