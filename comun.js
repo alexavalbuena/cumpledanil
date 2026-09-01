@@ -185,35 +185,64 @@ async function mostrarEstrellaEnModal(estrella){
   const img = document.getElementById('ver-foto');
   const video = document.getElementById('ver-video');
   const audio = document.getElementById('ver-audio');
+  const spinner = document.getElementById('spinner-media');
   img.hidden = true; img.src = '';
   video.hidden = true; video.pause(); video.src = '';
   audio.hidden = true; audio.pause(); audio.src = '';
 
+  const hayMedia = !!(estrella.imagen_url || estrella.video_url || estrella.audio_url);
+  if (spinner) spinner.hidden = !hayMedia;
+
   abrirModal('modal-ver-fondo');
+
+  const ocultarSpinner = () => { if (spinner) spinner.hidden = true; };
 
   if (estrella.imagen_url){
     const url = await resolverUrlFirmada(CONFIG.BUCKET_IMAGENES, estrella.imagen_url);
-    if (url){ img.src = url; img.hidden = false; }
+    if (url){
+      img.onload = ocultarSpinner;
+      img.onerror = ocultarSpinner;
+      img.src = url; img.hidden = false;
+    } else ocultarSpinner();
   }
   if (estrella.video_url){
     const url = await resolverUrlFirmada(CONFIG.BUCKET_VIDEOS, estrella.video_url);
-    if (url){ video.src = url; video.hidden = false; }
+    if (url){
+      video.oncanplay = ocultarSpinner;
+      video.onerror = ocultarSpinner;
+      video.src = url; video.hidden = false;
+    } else ocultarSpinner();
   }
   if (estrella.audio_url){
     const url = await resolverUrlFirmada(CONFIG.BUCKET_AUDIOS, estrella.audio_url);
-    if (url){ audio.src = url; audio.hidden = false; }
+    if (url){
+      audio.oncanplay = ocultarSpinner;
+      audio.onerror = ocultarSpinner;
+      audio.src = url; audio.hidden = false;
+    } else ocultarSpinner();
   }
+}
+
+function abrirLightboxImagen(src){
+  const lb = document.getElementById('lightbox-imagen');
+  const lbImg = document.getElementById('lightbox-imagen-img');
+  if (!lb || !lbImg || !src) return;
+  lbImg.src = src;
+  abrirModal('lightbox-imagen');
 }
 
 /* ============================= Modales genéricos ============================= */
 function abrirModal(id){ document.getElementById(id).classList.remove('oculto'); document.body.style.overflow='hidden'; }
 function cerrarModal(id){
   document.getElementById(id).classList.add('oculto');
-  document.body.style.overflow='';
-  const audio = document.getElementById('ver-audio');
-  if (audio) audio.pause();
-  const video = document.getElementById('ver-video');
-  if (video) video.pause();
+  const algunoAbierto = Array.from(document.querySelectorAll('.modal-fondo')).some(m => !m.classList.contains('oculto'));
+  document.body.style.overflow = algunoAbierto ? 'hidden' : '';
+  if (id === 'modal-ver-fondo'){
+    const audio = document.getElementById('ver-audio');
+    if (audio) audio.pause();
+    const video = document.getElementById('ver-video');
+    if (video) video.pause();
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -228,6 +257,10 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.modal-fondo:not(.oculto)').forEach(f => cerrarModal(f.id));
     }
   });
+  const verFoto = document.getElementById('ver-foto');
+  if (verFoto){
+    verFoto.addEventListener('click', () => abrirLightboxImagen(verFoto.src));
+  }
 });
 
 /* ============================= Pantalla de acceso (contraseña) ============================= */

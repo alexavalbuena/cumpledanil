@@ -136,7 +136,7 @@ header.encabezado .titulo{
 .estrella-real{
   position:absolute; width: 56px; height:56px; transform: translate(-50%,-50%);
   display:flex; align-items:center; justify-content:center;
-  background:none; border:none; padding:0;
+  background:none; border:none; padding:0; z-index:4;
   animation: titilar 3s ease-in-out infinite;
 }
 .estrella-real img{
@@ -178,6 +178,35 @@ header.encabezado .titulo{
   50% { transform: translateX(4px); }
 }
 
+#cielo-zoom-contenedor{
+  position:absolute; inset:0;
+  transition: transform .6s cubic-bezier(.22,.9,.24,1);
+  will-change: transform;
+}
+.zona-hover-constelacion{
+  position:absolute; transform: translate(-50%,-50%);
+  border-radius:50%; cursor: zoom-in; z-index:3;
+  display:flex; align-items:center; justify-content:center;
+}
+.zona-hover-constelacion .circulo-zona-hover{
+  position:absolute; inset:0; border-radius:50%;
+  border:2px dashed rgba(255,216,138,0); transition: border-color .25s ease;
+}
+.zona-hover-constelacion:hover .circulo-zona-hover{ border-color: rgba(255,216,138,.6); }
+.zona-hover-constelacion .icono-zoom-constelacion{
+  opacity:0; transform: scale(.75); transition: opacity .25s ease, transform .25s ease;
+  font-size:26px; filter: drop-shadow(0 2px 10px rgba(0,0,0,.65)); pointer-events:none;
+}
+.zona-hover-constelacion:hover .icono-zoom-constelacion{ opacity:1; transform: scale(1); }
+
+.boton-salir-zoom{
+  position:absolute; top:24px; right:24px; z-index:10;
+  padding:10px 16px; border-radius:999px; border:1px solid rgba(255,255,255,.25);
+  background: rgba(10,18,48,.75); color: var(--texto-claro); font-size:13.5px;
+  backdrop-filter: blur(4px);
+}
+.boton-salir-zoom:hover{ background: rgba(10,18,48,.92); border-color: var(--dorado); }
+
 /* Botón flotante (si alguna página lo usa) */
 #boton-agregar{
   position: fixed; right: 22px; bottom: 22px; z-index: 30;
@@ -212,6 +241,7 @@ header.encabezado .titulo{
 .modal-cerrar:hover{ background: rgba(255,255,255,.18); }
 
 /* --- Ver estrella --- */
+#modal-ver{ max-width: 560px; }
 #modal-ver .remitente{ font-family: var(--fuente-cuerpo); font-size:26px; color: var(--boton-claro); margin: 0 0 2px; padding-right: 30px; }
 #modal-ver .fecha{ font-size:12.5px; color: var(--texto-tenue); margin:0 0 16px; }
 #modal-ver .burbuja-mensaje{
@@ -219,9 +249,24 @@ header.encabezado .titulo{
   border-radius: 14px; padding: 16px; white-space: pre-wrap; line-height:1.55; font-size:15px;
   margin-bottom: 16px;
 }
-#modal-ver img.foto{ width:100%; border-radius:14px; margin-bottom:16px; display:block; }
+#modal-ver img.foto{ width:100%; border-radius:14px; margin-bottom:16px; display:block; cursor: zoom-in; }
+#modal-ver img.foto[hidden]{ display:none; }
 #modal-ver audio{ width:100%; margin-bottom:6px; }
 #modal-ver video{ margin-bottom:16px; }
+
+.spinner-media{
+  width:100%; min-height:160px; display:flex; align-items:center; justify-content:center; margin-bottom:16px;
+}
+.spinner-media[hidden]{ display:none; }
+.spinner-media::after{
+  content:''; width:38px; height:38px; border-radius:50%;
+  border:3px solid rgba(255,255,255,.25); border-top-color: var(--dorado);
+  animation: girar-spinner .8s linear infinite;
+}
+@keyframes girar-spinner{ to{ transform: rotate(360deg); } }
+
+.lightbox-imagen{ z-index: 70; background: rgba(4,8,24,.92); }
+.lightbox-imagen img{ max-width: 100%; max-height: 100%; border-radius: 12px; box-shadow: 0 30px 90px rgba(0,0,0,.6); object-fit: contain; }
 
 /* --- Tarjeta de formulario (página de enviar) --- */
 .tarjeta-formulario{
@@ -276,6 +321,12 @@ header.encabezado .titulo{
   height: 100vh;
 }
 #capa-estrellas{ position:absolute; inset:0; z-index:3; }
+
+#overlay-formulario{
+  position: fixed; inset:0; z-index: 20;
+  background: rgba(4,8,24,.55); backdrop-filter: blur(2px);
+  overflow-y: auto;
+}
 
 /* --- Elegir tipo de estrella: cuadrícula de 4 botones --- */
 .agregando-como{ text-align:center; color: var(--texto-tenue); font-size: 13.5px; margin: 0 0 18px; }
@@ -352,4 +403,8 @@ input[type="file"]{ display:none; }
   .estrella-real{ width: 40px; height:40px; }
   .encabezado-bienvenida{ left: max(10px, calc(18px - 2cm)); top: max(10px, calc(6% - 3cm)); max-width: min(260px, 78vw); }
   .imagen-titulo-bienvenida{ width: min(260px, 78vw); }
+}
+
+.pointer-none{
+  pointer-events:none;
 }

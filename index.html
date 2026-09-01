@@ -29,8 +29,8 @@
 
 <!-- ================= VISTA 1: BIENVENIDA (sin clave) ================= -->
 <div id="vista-bienvenida">
-  <div class="encabezado-bienvenida">
-    <img src="assets/titulo-bienvenida.png" alt="Para Dani, un regalo hecho de estrellas nuestras. Toca el cielo para dejar tu estrella." class="imagen-titulo-bienvenida" />
+  <div class="encabezado-bienvenida pointer-none">
+    <img src="assets/tittle.png" alt="Para Dani, un regalo hecho de estrellas nuestras. Toca el cielo para dejar tu estrella." class="imagen-titulo-bienvenida" />
   </div>
   <div id="cielo-bienvenida">
     <div class="capa-fondo"></div>
@@ -41,6 +41,7 @@
   </div>
 </div>
 
+<div id="overlay-formulario" hidden>
 <!-- ================= VISTA 2: NOMBRE + ELEGIR TIPO ================= -->
 <div id="vista-elegir" hidden>
   <div class="tarjeta-formulario">
@@ -172,9 +173,13 @@
       <h2>¡Gracias, <span id="nombre-confirmacion"></span>!</h2>
       <p>Tu estrella ya es parte del cielo. Gracias por hacer esta sorpresa más especial.</p>
       <ul class="lista-envios" id="lista-envios"></ul>
-      <button class="boton-dorado" id="boton-enviar-otra">✨ Dejar otra estrella</button>
+      <div class="fila-opciones">
+        <button type="button" class="boton-secundario" id="boton-terminar">Listo, terminar</button>
+        <button class="boton-dorado" id="boton-enviar-otra" style="flex:2;">✨ Dejar otra estrella</button>
+      </div>
     </div>
   </div>
+</div>
 </div>
 
 <div class="modal-fondo oculto" id="modal-ver-fondo">
@@ -182,11 +187,17 @@
     <button class="modal-cerrar" data-cerrar="modal-ver-fondo">✕</button>
     <h2 class="remitente" id="ver-remitente"></h2>
     <p class="fecha" id="ver-fecha"></p>
+    <div class="spinner-media" id="spinner-media" hidden></div>
     <img class="foto" id="ver-foto" hidden />
     <video id="ver-video" controls hidden></video>
     <div class="burbuja-mensaje" id="ver-mensaje" hidden></div>
     <audio id="ver-audio" controls hidden></audio>
   </div>
+</div>
+
+<div class="modal-fondo oculto lightbox-imagen" id="lightbox-imagen">
+  <button class="modal-cerrar" data-cerrar="lightbox-imagen">✕</button>
+  <img id="lightbox-imagen-img" alt="" />
 </div>
 
 <div id="toast"></div>
@@ -203,9 +214,13 @@ if (!sb) document.getElementById('aviso-demo').hidden = false;
 
 /* ============================= Navegación entre vistas ============================= */
 function mostrarVista(id){
-  ['vista-bienvenida','vista-elegir','vista-contenido','vista-repaso','vista-confirmacion'].forEach(v => {
-    document.getElementById(v).hidden = (v !== id);
-  });
+  const esBienvenida = (id === 'vista-bienvenida');
+  document.getElementById('overlay-formulario').hidden = esBienvenida;
+  if (!esBienvenida){
+    ['vista-elegir','vista-contenido','vista-repaso','vista-confirmacion'].forEach(v => {
+      document.getElementById(v).hidden = (v !== id);
+    });
+  }
   window.scrollTo(0, 0);
 }
 
@@ -258,8 +273,12 @@ async function cargarCielo(){
 }
 
 function renderizarCielo(){
-  capaEstrellas.innerHTML = '';
   const rect = cieloBienvenida.getBoundingClientRect();
+  if (!rect.width || !rect.height){
+    requestAnimationFrame(renderizarCielo);
+    return;
+  }
+  capaEstrellas.innerHTML = '';
   const ancho = rect.width, alto = rect.height;
   const idsPropias = new Set(misEstrellas.map(e => e.id));
   const otras = otrasEstrellas.filter(e => !idsPropias.has(e.id));
@@ -644,13 +663,15 @@ function mostrarConfirmacion(){
   mostrarVista('vista-confirmacion');
 }
 
-document.getElementById('boton-enviar-otra').addEventListener('click', () => {
+function volverAMapaDesdeConfirmacion(){
   limpiarCampos();
   tipoActual = null;
   actualizarCamposIdentidad();
   renderizarCielo();
   mostrarVista('vista-bienvenida');
-});
+}
+document.getElementById('boton-enviar-otra').addEventListener('click', volverAMapaDesdeConfirmacion);
+document.getElementById('boton-terminar').addEventListener('click', volverAMapaDesdeConfirmacion);
 
 cargarCielo();
 </script>

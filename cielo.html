@@ -42,14 +42,17 @@
   </div>
 
   <div id="cielo-wrap">
-    <div class="capa-fondo"></div>
-    <div class="capa-efectos"></div>
-    <svg id="lineas-constelacion"></svg>
-    <div id="cielo"></div>
-    <div id="vacio-cielo" hidden>Todavía no hay estrellas en este cielo.</div>
+    <div id="cielo-zoom-contenedor">
+      <div class="capa-fondo"></div>
+      <div class="capa-efectos"></div>
+      <svg id="lineas-constelacion"></svg>
+      <div id="cielo"></div>
+      <div id="vacio-cielo" hidden>Todavía no hay estrellas en este cielo.</div>
+    </div>
     <header class="encabezado">
       <h1 class="titulo" id="titulo-principal"></h1>
     </header>
+    <button type="button" id="boton-salir-zoom" class="boton-salir-zoom" hidden>✕ Ver todo el cielo</button>
   </div>
 </div>
 
@@ -59,11 +62,17 @@
     <button class="modal-cerrar" data-cerrar="modal-ver-fondo">✕</button>
     <h2 class="remitente" id="ver-remitente"></h2>
     <p class="fecha" id="ver-fecha"></p>
+    <div class="spinner-media" id="spinner-media" hidden></div>
     <img class="foto" id="ver-foto" hidden />
     <video id="ver-video" controls hidden></video>
     <div class="burbuja-mensaje" id="ver-mensaje" hidden></div>
     <audio id="ver-audio" controls hidden></audio>
   </div>
+</div>
+
+<div class="modal-fondo oculto lightbox-imagen" id="lightbox-imagen">
+  <button class="modal-cerrar" data-cerrar="lightbox-imagen">✕</button>
+  <img id="lightbox-imagen-img" alt="" />
 </div>
 
 <div id="toast"></div>
@@ -91,7 +100,31 @@ const SVG_FLECHA_GRUPO = `<svg viewBox="0 0 30 22" width="20" height="15" fill="
 const cielo = document.getElementById('cielo');
 const vacioCielo = document.getElementById('vacio-cielo');
 const svgLineas = document.getElementById('lineas-constelacion');
+const zoomContenedor = document.getElementById('cielo-zoom-contenedor');
+const botonSalirZoom = document.getElementById('boton-salir-zoom');
 let estrellasActuales = [];
+let zoomActivo = false;
+
+function aplicarZoomAConstelacion(anchorEstrella, radio, anchoCielo, altoCielo){
+  const p = puntoEstrellaAPx(anchorEstrella, anchoCielo, altoCielo);
+  const escala = Math.min(3.2, Math.max(1.6, Math.min(anchoCielo, altoCielo) / (radio * 2.4)));
+  const cx = anchoCielo / 2, cy = altoCielo / 2;
+  const tx = cx - escala * p.x;
+  const ty = cy - escala * p.y;
+  zoomContenedor.style.transformOrigin = '0 0';
+  zoomContenedor.style.transform = `translate(${tx}px, ${ty}px) scale(${escala})`;
+  zoomActivo = true;
+  botonSalirZoom.hidden = false;
+}
+
+function salirDelZoom(){
+  zoomContenedor.style.transform = '';
+  zoomActivo = false;
+  botonSalirZoom.hidden = true;
+}
+
+botonSalirZoom.addEventListener('click', salirDelZoom);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && zoomActivo) salirDelZoom(); });
 
 async function obtenerEstrellas(){
   if (sb){
@@ -153,6 +186,20 @@ function pintarCielo(estrellas){
     div.appendChild(flecha);
     div.appendChild(nombre);
     cielo.appendChild(div);
+
+    const ancla = grupo.estrellas[0];
+    const radio = grupo.estrellas.length > 1 ? CONFIG.RADIO_CONSTELACION_PX : 90;
+    const pz = mapearPuntoAFondo(ancla.x, ancla.y, anchoCielo, alturaCielo);
+    const zonaHover = document.createElement('div');
+    zonaHover.className = 'zona-hover-constelacion';
+    zonaHover.style.left = pz.x + '%';
+    zonaHover.style.top = pz.y + '%';
+    zonaHover.style.width = (radio * 2) + 'px';
+    zonaHover.style.height = (radio * 2) + 'px';
+    zonaHover.title = 'Ver esta constelación de cerca';
+    zonaHover.innerHTML = '<div class="circulo-zona-hover"></div><span class="icono-zoom-constelacion">🔍</span>';
+    zonaHover.addEventListener('click', () => aplicarZoomAConstelacion(ancla, radio, anchoCielo, alturaCielo));
+    cielo.appendChild(zonaHover);
   });
 
   dibujarLineasEnSvg(svgLineas, estrellas, anchoCielo, alturaCielo);
@@ -167,7 +214,10 @@ configurarPantallaAcceso(async () => {
 let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { if (estrellasActuales.length) pintarCielo(estrellasActuales); }, 250);
+  resizeTimer = setTimeout(() => {
+    if (zoomActivo) salirDelZoom();
+    if (estrellasActuales.length) pintarCielo(estrellasActuales);
+  }, 250);
 });
 </script>
 </body>
