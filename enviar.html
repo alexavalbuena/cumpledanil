@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Deja tu estrella ✨</title>
-<meta name="description" content="Deja un mensaje sorpresa de cumpleaños" />
+<title>Un cielo de mensajes 🎉✨</title>
+<meta name="description" content="Un cielo de estrellas con mensajes de cumpleaños" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,160 +23,37 @@
 <div class="fondo-textura"></div>
 <div class="fondo-oscurecer"></div>
 
-<div class="aviso-demo" id="aviso-demo" hidden style="margin-top:18px;">
-  ⚠️ Este sitio está en <strong>modo de vista previa</strong>: aún no conectaste el backend de Supabase, así que tu mensaje solo se guardará en este navegador y no llegará a nadie más. Sigue la guía para conectar Supabase antes de compartir este link con la gente.
+<!-- ================= PANTALLA DE ACCESO ================= -->
+<div id="pantalla-acceso">
+  <div class="tarjeta-acceso" id="tarjeta-acceso">
+    <span class="emoji-grande">🔭✨</span>
+    <h1>Cielo secreto</h1>
+    <p>Escribe la clave para entrar y descubrir tus estrellas.</p>
+    <input type="password" id="input-clave" class="campo-clave" placeholder="• • • • •" autocomplete="off" />
+    <button class="boton-dorado" id="boton-entrar">Entrar</button>
+    <div id="error-clave"></div>
+  </div>
 </div>
 
-<!-- ================= VISTA 1: BIENVENIDA (sin clave) ================= -->
-<div id="vista-bienvenida">
-  <div class="encabezado-bienvenida">
-    <img src="assets/titulo-bienvenida.png" alt="Para Dani, un regalo hecho de estrellas nuestras. Toca el cielo para dejar tu estrella." class="imagen-titulo-bienvenida" />
+<!-- ================= APP (cielo con las estrellas) ================= -->
+<div id="app" hidden>
+  <div class="aviso-demo" id="aviso-demo" hidden>
+    ⚠️ Este sitio está en <strong>modo de vista previa</strong>: aún no conectaste el backend de Supabase, así que solo ves las estrellas de ejemplo guardadas en este navegador. Sigue la guía para conectar Supabase y ver los mensajes reales de todas las personas.
   </div>
-  <div id="cielo-bienvenida">
+
+  <div id="cielo-wrap">
     <div class="capa-fondo"></div>
     <div class="capa-efectos"></div>
-    <div id="zona-permitida" class="zona-permitida" hidden></div>
     <svg id="lineas-constelacion"></svg>
-    <div id="capa-estrellas"></div>
+    <div id="cielo"></div>
+    <div id="vacio-cielo" hidden>Todavía no hay estrellas en este cielo.</div>
+    <header class="encabezado">
+      <h1 class="titulo" id="titulo-principal"></h1>
+    </header>
   </div>
 </div>
 
-<!-- ================= VISTA 2: NOMBRE + ELEGIR TIPO ================= -->
-<div id="vista-elegir" hidden>
-  <div class="tarjeta-formulario">
-    <div class="caja">
-      <button type="button" class="modal-cerrar cerrar-mapa" title="Volver al mapa" aria-label="Volver al mapa">✕</button>
-      <h1>✨ Deja tu estrella</h1>
-      <p class="intro" id="intro-elegir">¿Qué le quieres dejar a Dani Lozano?</p>
-
-      <div class="campo-grupo" id="grupo-nombre">
-        <label for="campo-nombre">Tu nombre</label>
-        <input type="text" id="campo-nombre" maxlength="40" placeholder="¿Quién eres?" />
-      </div>
-
-      <div class="campo-grupo" id="grupo-correo">
-        <label for="campo-correo">Tu correo</label>
-        <input type="email" id="campo-correo" maxlength="80" placeholder="tu@correo.com" autocomplete="email" />
-      </div>
-
-      <p class="agregando-como" id="agregando-como" hidden>Agregando otra estrella como <strong id="nombre-actual-texto"></strong> <button type="button" id="enlace-cambiar-identidad" class="enlace-cambiar-identidad">(no soy yo)</button></p>
-
-      <div class="grid-tipos">
-        <button type="button" class="boton-tipo" data-tipo="mensaje"><span class="icono">💬</span>Mensaje</button>
-        <button type="button" class="boton-tipo" data-tipo="audio"><span class="icono">🎙️</span>Audio</button>
-        <button type="button" class="boton-tipo" data-tipo="video"><span class="icono">🎥</span>Video</button>
-        <button type="button" class="boton-tipo" data-tipo="foto"><span class="icono">📷</span>Foto</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ================= VISTA 3: CONTENIDO SEGÚN TIPO ================= -->
-<div id="vista-contenido" hidden>
-  <div class="tarjeta-formulario">
-    <div class="caja">
-      <button type="button" class="modal-cerrar cerrar-mapa" title="Volver al mapa" aria-label="Volver al mapa">✕</button>
-      <button type="button" class="boton-atras" id="boton-atras">← Elegir otra opción</button>
-      <h1 id="titulo-contenido">✨ Tu mensaje</h1>
-
-      <form id="formulario-estrella">
-        <!-- Mensaje -->
-        <div class="campo-grupo" id="campo-tipo-mensaje" hidden>
-          <label for="campo-mensaje">Tu mensaje</label>
-          <textarea id="campo-mensaje" maxlength="600" placeholder="Escribe aquí tu mensaje de cumpleaños..."></textarea>
-          <div class="contador-caracteres"><span id="contador-mensaje">0</span>/600</div>
-        </div>
-
-        <!-- Audio -->
-        <div class="campo-grupo" id="campo-tipo-audio" hidden>
-          <div class="fila-opciones">
-            <button type="button" class="boton-secundario" id="boton-subir-audio">🎵 Subir audio</button>
-            <button type="button" class="boton-secundario" id="boton-grabar-audio">🎙️ Grabar mensaje de voz</button>
-          </div>
-          <input type="file" id="campo-audio" accept="audio/*" />
-          <div id="grabacion-estado"></div>
-          <div class="previsualizacion" id="previsualizacion-audio" hidden></div>
-        </div>
-
-        <!-- Video -->
-        <div class="campo-grupo" id="campo-tipo-video" hidden>
-          <label id="etiqueta-limite-video">Sube un video cortito (ideal ~30 segundos)</label>
-          <div class="fila-opciones">
-            <label class="boton-secundario" for="campo-video">🎥 Elegir video</label>
-          </div>
-          <input type="file" id="campo-video" accept="video/*" />
-          <div class="previsualizacion" id="previsualizacion-video" hidden></div>
-        </div>
-
-        <!-- Foto -->
-        <div class="campo-grupo" id="campo-tipo-foto" hidden>
-          <div class="fila-opciones">
-            <label class="boton-secundario" for="campo-imagen">📷 Elegir foto</label>
-          </div>
-          <input type="file" id="campo-imagen" accept="image/*" />
-          <div class="previsualizacion" id="previsualizacion-imagen" hidden></div>
-        </div>
-
-        <button type="submit" class="boton-dorado" id="boton-revisar-estrella">Revisar antes de enviar</button>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- ================= VISTA 4: REPASO (antes de enviar de verdad) ================= -->
-<div id="vista-repaso" hidden>
-  <div class="tarjeta-formulario">
-    <div class="caja">
-      <button type="button" class="modal-cerrar cerrar-mapa" title="Volver al mapa" aria-label="Volver al mapa">✕</button>
-      <h1>✨ Revisa tu estrella</h1>
-      <p class="intro" style="margin-bottom:18px;">Así se va a ver. Si todo está bien, confírmala.</p>
-
-      <div class="campo-grupo">
-        <label>De</label>
-        <div class="burbuja-mensaje" id="repaso-nombre" style="margin-bottom:0;"></div>
-      </div>
-
-      <div class="campo-grupo" id="repaso-grupo-mensaje" hidden>
-        <label>Mensaje</label>
-        <div class="burbuja-mensaje" id="repaso-mensaje"></div>
-      </div>
-
-      <div class="campo-grupo" id="repaso-grupo-foto" hidden>
-        <label>Foto</label>
-        <img id="repaso-foto" class="foto" style="width:100%; border-radius:14px; display:block;" />
-      </div>
-
-      <div class="campo-grupo" id="repaso-grupo-video" hidden>
-        <label>Video</label>
-        <video id="repaso-video" controls></video>
-      </div>
-
-      <div class="campo-grupo" id="repaso-grupo-audio" hidden>
-        <label>Audio</label>
-        <audio id="repaso-audio" controls style="width:100%;"></audio>
-      </div>
-
-      <div class="fila-opciones">
-        <button type="button" class="boton-secundario" id="boton-editar-repaso">← Editar</button>
-        <button type="button" class="boton-dorado" id="boton-confirmar-envio" style="flex:2;">Confirmar y enviar ✨</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ================= VISTA 5: CONFIRMACIÓN ================= -->
-<div id="vista-confirmacion" hidden>
-  <div class="tarjeta-formulario">
-    <div class="caja confirmacion-envio">
-      <span class="emoji-grande">🌟</span>
-      <h2>¡Gracias, <span id="nombre-confirmacion"></span>!</h2>
-      <p>Tu estrella ya es parte del cielo. Gracias por hacer esta sorpresa más especial.</p>
-      <ul class="lista-envios" id="lista-envios"></ul>
-      <button class="boton-dorado" id="boton-enviar-otra">✨ Dejar otra estrella</button>
-    </div>
-  </div>
-</div>
-
+<!-- ================= MODAL: VER ESTRELLA ================= -->
 <div class="modal-fondo oculto" id="modal-ver-fondo">
   <div class="modal" id="modal-ver">
     <button class="modal-cerrar" data-cerrar="modal-ver-fondo">✕</button>
@@ -192,467 +69,106 @@
 <div id="toast"></div>
 
 <script>
-/* Esta página (enviar.html) NO pide clave: cualquiera con el link puede
-   dejar un mensaje. El cielo completo (con clave) se ve en index.html. */
+/* Esta página (index.html) es el "cielo final": solo muestra las estrellas
+   que ya se agregaron desde enviar.html. Aquí no se pueden agregar mensajes. */
 
-const nombreCumple = CONFIG.BIRTHDAY_NAME || 'la cumpleañera';
-document.getElementById('intro-elegir').textContent = `¿Qué le quieres dejar a ${nombreCumple}?`;
-document.getElementById('etiqueta-limite-video').textContent = `Sube un video cortito (máx. ${CONFIG.MAX_VIDEO_MB} MB, ideal ~30 segundos)`;
-
-if (!sb) document.getElementById('aviso-demo').hidden = false;
-
-/* ============================= Navegación entre vistas ============================= */
-function mostrarVista(id){
-  ['vista-bienvenida','vista-elegir','vista-contenido','vista-repaso','vista-confirmacion'].forEach(v => {
-    document.getElementById(v).hidden = (v !== id);
-  });
-  window.scrollTo(0, 0);
+{
+  const primerNombreCumple = (CONFIG.BIRTHDAY_NAME || 'Dani').trim().split(/\s+/)[0];
+  document.getElementById('titulo-principal').textContent = `Feliz cumple ${primerNombreCumple}`;
 }
 
-const identidadGuardada = obtenerIdentidadGuardada();
-let nombreActual = identidadGuardada ? identidadGuardada.nombre : '';
-let correoActual = identidadGuardada ? identidadGuardada.correo : '';
-let tipoActual = null;
-let puntoPendiente = null;
-let misEstrellas = [];
-let otrasEstrellas = [];
-const estrellasDemoLocal = [];
-const enviosSesion = [];
-const etiquetasTipo = { mensaje: 'Un mensaje', audio: 'Un audio', video: 'Un video', foto: 'Una foto' };
+let estrellasDemo = [
+  { id: 'demo-1', nombre: 'Ejemplo', email: 'ejemplo@correo.com', tipo: 'mensaje', mensaje: 'Así se ve una estrella cuando alguien deja un mensaje. Conecta Supabase para ver los mensajes reales aquí. 💫', imagen_url: null, audio_url: null, video_url: null, x: 30, y: 32, diseno: 1, created_at: new Date().toISOString() },
+  { id: 'demo-2', nombre: 'Ejemplo', email: 'ejemplo@correo.com', tipo: 'mensaje', mensaje: 'Cuando alguien deja más de una estrella, se agrupan cerca y aparece una línea entre ellas. ✨', imagen_url: null, audio_url: null, video_url: null, x: 38, y: 24, diseno: 2, created_at: new Date().toISOString() },
+  { id: 'demo-3', nombre: 'Otra persona', email: 'otra@correo.com', tipo: 'mensaje', mensaje: 'Cada persona forma su propia constelación en el cielo.', imagen_url: null, audio_url: null, video_url: null, x: 68, y: 62, diseno: 3, created_at: new Date().toISOString() },
+];
 
-const cieloBienvenida = document.getElementById('cielo-bienvenida');
-const capaEstrellas = document.getElementById('capa-estrellas');
+const SVG_FLECHA_GRUPO = `<svg viewBox="0 0 30 22" width="20" height="15" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <line x1="3" y1="19" x2="25" y2="4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <path d="M12 4 L25 4 L25 13" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+
+const cielo = document.getElementById('cielo');
+const vacioCielo = document.getElementById('vacio-cielo');
 const svgLineas = document.getElementById('lineas-constelacion');
-const zonaPermitida = document.getElementById('zona-permitida');
+let estrellasActuales = [];
 
-function actualizarCamposIdentidad(){
-  const conocido = !!(nombreActual && correoActual);
-  document.getElementById('grupo-nombre').hidden = conocido;
-  document.getElementById('grupo-correo').hidden = conocido;
-  document.getElementById('agregando-como').hidden = !conocido;
-  if (conocido) document.getElementById('nombre-actual-texto').textContent = nombreActual;
-}
-
-async function cargarCielo(){
+async function obtenerEstrellas(){
   if (sb){
-    try{
-      const { data, error } = await sb.from('estrellas_publicas').select('id,x,y,diseno,created_at');
-      if (error) throw error;
-      otrasEstrellas = data || [];
-    }catch(err){
-      console.error(err);
-      const { data } = await sb.from('estrellas').select('id,x,y,diseno,created_at');
-      otrasEstrellas = data || [];
+    const { data, error } = await sb.from('estrellas').select('*').order('created_at', { ascending: true });
+    if (error){
+      console.error(error);
+      mostrarToast('No se pudieron cargar las estrellas. Revisa tu conexión.');
+      return [];
     }
-    if (correoActual){
-      const { data, error } = await sb.from('estrellas').select('*').eq('email', correoActual).order('created_at', { ascending: true });
-      if (!error) misEstrellas = data || [];
-    } else {
-      misEstrellas = [];
-    }
-  } else {
-    otrasEstrellas = estrellasDemoLocal.filter(e => e.email !== correoActual).map(e => ({ id: e.id, x: e.x, y: e.y, diseno: e.diseno }));
-    misEstrellas = correoActual ? estrellasDemoLocal.filter(e => e.email === correoActual) : [];
+    return data || [];
   }
-  renderizarCielo();
+  document.getElementById('aviso-demo').hidden = false;
+  return estrellasDemo;
 }
 
-function renderizarCielo(){
-  capaEstrellas.innerHTML = '';
-  const rect = cieloBienvenida.getBoundingClientRect();
-  const ancho = rect.width, alto = rect.height;
-  const idsPropias = new Set(misEstrellas.map(e => e.id));
-  const otras = otrasEstrellas.filter(e => !idsPropias.has(e.id));
+function pintarCielo(estrellas){
+  estrellasActuales = estrellas;
+  cielo.innerHTML = '';
+  vacioCielo.hidden = estrellas.length > 0;
 
-  otras.forEach((estrella) => {
-    const p = mapearPuntoAFondo(estrella.x, estrella.y, ancho, alto);
-    const boton = document.createElement('button');
-    boton.className = 'estrella-real ajena';
-    boton.style.left = p.x + '%';
-    boton.style.top = p.y + '%';
-    boton.style.animationDelay = (prngDesdeTexto('anim::' + estrella.id)() * 3).toFixed(2) + 's';
-    boton.setAttribute('aria-label', 'Estrella de otra persona');
-    const img = document.createElement('img');
-    img.src = `assets/estrella-${estrella.diseno || 1}.png`;
-    img.alt = '';
-    boton.appendChild(img);
-    boton.addEventListener('click', (e) => {
-      e.stopPropagation();
-      mostrarToast('✨ Esa estrella es de otra persona. ¡Es parte de la sorpresa!');
-    });
-    capaEstrellas.appendChild(boton);
-  });
+  const anchoCielo = cielo.clientWidth || 1000;
+  const alturaCielo = cielo.clientHeight || Math.round(anchoCielo * (IMG_FONDO_ALTO / IMG_FONDO_ANCHO));
 
-  misEstrellas.forEach((estrella) => {
-    const p = mapearPuntoAFondo(estrella.x, estrella.y, ancho, alto);
+  estrellas.forEach((estrella) => {
+    const p = mapearPuntoAFondo(estrella.x, estrella.y, anchoCielo, alturaCielo);
     const boton = document.createElement('button');
     boton.className = 'estrella-real propia';
     boton.style.left = p.x + '%';
     boton.style.top = p.y + '%';
     boton.style.animationDelay = (prngDesdeTexto('anim::' + estrella.id)() * 3).toFixed(2) + 's';
-    boton.title = 'Tu estrella (toca para verla)';
+    boton.title = `Estrella de ${estrella.nombre}`;
     const img = document.createElement('img');
     img.src = `assets/estrella-${estrella.diseno || 1}.png`;
     img.alt = '';
     boton.appendChild(img);
-    boton.addEventListener('click', (e) => {
-      e.stopPropagation();
-      mostrarEstrellaEnModal(estrella);
-    });
-    capaEstrellas.appendChild(boton);
+    boton.addEventListener('click', () => mostrarEstrellaEnModal(estrella));
+    cielo.appendChild(boton);
   });
 
-  dibujarLineasEnSvg(svgLineas, misEstrellas, ancho, alto);
+  const grupos = agruparPorCorreo(estrellas);
+  grupos.forEach((grupo) => {
+    let masAlta = grupo.estrellas[0];
+    grupo.estrellas.forEach((estrella) => { if (estrella.y < masAlta.y) masAlta = estrella; });
+    const p = mapearPuntoAFondo(masAlta.x, masAlta.y, anchoCielo, alturaCielo);
+    const div = document.createElement('div');
+    div.className = 'etiqueta-grupo';
+    div.style.left = p.x + '%';
+    div.style.top = p.y + '%';
 
-  if (misEstrellas.length > 0){
-    const primera = misEstrellas[0];
-    const p = puntoEstrellaAPx(primera, ancho, alto);
-    const r = CONFIG.RADIO_CONSTELACION_PX;
-    zonaPermitida.hidden = false;
-    zonaPermitida.style.left = p.x + 'px';
-    zonaPermitida.style.top = p.y + 'px';
-    zonaPermitida.style.width = (r * 2) + 'px';
-    zonaPermitida.style.height = (r * 2) + 'px';
-  } else {
-    zonaPermitida.hidden = true;
-  }
+    const flecha = document.createElement('span');
+    flecha.className = 'flecha-grupo';
+    flecha.setAttribute('aria-hidden', 'true');
+    flecha.innerHTML = SVG_FLECHA_GRUPO;
+
+    const nombre = document.createElement('span');
+    nombre.className = 'nombre-grupo';
+    nombre.textContent = grupo.nombre;
+
+    div.appendChild(flecha);
+    div.appendChild(nombre);
+    cielo.appendChild(div);
+  });
+
+  dibujarLineasEnSvg(svgLineas, estrellas, anchoCielo, alturaCielo);
 }
 
-function abrirVistaElegir(){
-  actualizarCamposIdentidad();
-  mostrarVista('vista-elegir');
-}
-
-cieloBienvenida.addEventListener('click', (e) => {
-  const rect = cieloBienvenida.getBoundingClientRect();
-  const clickX = e.clientX - rect.left;
-  const clickY = e.clientY - rect.top;
-
-  const tituloEl = document.querySelector('.imagen-titulo-bienvenida');
-  if (tituloEl){
-    const r = tituloEl.getBoundingClientRect();
-    const margen = 22;
-    const x1 = r.left - rect.left - margen, y1 = r.top - rect.top - margen;
-    const x2 = r.right - rect.left + margen, y2 = r.bottom - rect.top + margen;
-    if (clickX >= x1 && clickX <= x2 && clickY >= y1 && clickY <= y2){
-      mostrarToast('Ese lugar queda debajo del título. Elige otro punto del cielo ✨');
-      return;
-    }
-  }
-
-  const idsPropias = new Set(misEstrellas.map(x => x.id));
-  const todas = [...misEstrellas, ...otrasEstrellas.filter(x => !idsPropias.has(x.id))];
-  for (const estrella of todas){
-    const p = puntoEstrellaAPx(estrella, rect.width, rect.height);
-    if (Math.hypot(p.x - clickX, p.y - clickY) < CONFIG.ZONA_SEGURIDAD_PX){
-      mostrarToast('Ahí ya hay una estrella. Elige un espacio libre para la tuya ✨');
-      return;
-    }
-  }
-
-  if (misEstrellas.length > 0){
-    const primera = misEstrellas[0];
-    const p = puntoEstrellaAPx(primera, rect.width, rect.height);
-    if (Math.hypot(p.x - clickX, p.y - clickY) > CONFIG.RADIO_CONSTELACION_PX){
-      mostrarToast('Tu próxima estrella debe quedar cerca de tu primera estrella (dentro del círculo dorado) ✨');
-      return;
-    }
-  }
-
-  puntoPendiente = mapearClickAImagen(clickX, clickY, rect.width, rect.height);
-  abrirVistaElegir();
+configurarPantallaAcceso(async () => {
+  document.getElementById('app').hidden = false;
+  const estrellas = await obtenerEstrellas();
+  pintarCielo(estrellas);
 });
 
-let resizeTimerBienvenida;
+let resizeTimer;
 window.addEventListener('resize', () => {
-  clearTimeout(resizeTimerBienvenida);
-  resizeTimerBienvenida = setTimeout(() => { if (!document.getElementById('vista-bienvenida').hidden) renderizarCielo(); }, 250);
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if (estrellasActuales.length) pintarCielo(estrellasActuales); }, 250);
 });
-
-document.getElementById('enlace-cambiar-identidad').addEventListener('click', () => {
-  limpiarIdentidadGuardada();
-  nombreActual = '';
-  correoActual = '';
-  misEstrellas = [];
-  actualizarCamposIdentidad();
-  renderizarCielo();
-  mostrarToast('Listo. Ahora puedes escribir tu nombre y correo de nuevo.');
-});
-
-/* ============================= Elegir tipo ============================= */
-document.querySelectorAll('.boton-tipo').forEach(btn => {
-  btn.addEventListener('click', () => {
-    if (!nombreActual || !correoActual){
-      const nombreVal = document.getElementById('campo-nombre').value.trim();
-      const correoVal = document.getElementById('campo-correo').value.trim();
-      if (!nombreVal){ mostrarToast('Escribe tu nombre primero.'); return; }
-      if (!esCorreoValido(correoVal)){ mostrarToast('Escribe un correo válido.'); return; }
-      nombreActual = nombreVal;
-      correoActual = correoVal.toLowerCase();
-    }
-    tipoActual = btn.dataset.tipo;
-    abrirVistaContenido(tipoActual);
-  });
-});
-
-function abrirVistaContenido(tipo){
-  document.querySelectorAll('#formulario-estrella .campo-grupo').forEach(c => c.hidden = true);
-  const titulos = { mensaje: '✨ Tu mensaje', audio: '✨ Tu audio', video: '✨ Tu video', foto: '✨ Tu foto' };
-  document.getElementById('titulo-contenido').textContent = titulos[tipo];
-  document.getElementById('campo-tipo-' + tipo).hidden = false;
-  mostrarVista('vista-contenido');
-}
-
-document.getElementById('boton-atras').addEventListener('click', () => {
-  actualizarCamposIdentidad();
-  mostrarVista('vista-elegir');
-});
-
-/* Botón "✕" disponible en las vistas de elegir/contenido/repaso: permite
-   salir por completo del formulario y volver al mapa de estrellas
-   (vista-bienvenida), por si la persona eligió mal y no quiere seguir
-   con esta estrella. */
-function volverAlMapa(){
-  actualizarCamposIdentidad();
-  puntoPendiente = null;
-  mostrarVista('vista-bienvenida');
-}
-document.querySelectorAll('.cerrar-mapa').forEach(btn => btn.addEventListener('click', volverAlMapa));
-
-/* ============================= Campos: mensaje ============================= */
-const campoMensaje = document.getElementById('campo-mensaje');
-const contadorMensaje = document.getElementById('contador-mensaje');
-campoMensaje.addEventListener('input', () => { contadorMensaje.textContent = campoMensaje.value.length; });
-
-/* ============================= Campos: foto ============================= */
-const campoImagen = document.getElementById('campo-imagen');
-const previsualizacionImagen = document.getElementById('previsualizacion-imagen');
-campoImagen.addEventListener('change', () => {
-  const archivo = campoImagen.files[0];
-  if (!archivo) { previsualizacionImagen.hidden = true; return; }
-  if (archivo.size > CONFIG.MAX_IMAGEN_MB * 1024 * 1024){
-    mostrarToast(`La foto pesa demasiado (máx. ${CONFIG.MAX_IMAGEN_MB} MB).`);
-    campoImagen.value = ''; previsualizacionImagen.hidden = true; return;
-  }
-  const url = URL.createObjectURL(archivo);
-  previsualizacionImagen.hidden = false;
-  previsualizacionImagen.innerHTML = `<img src="${url}"/><span>${archivo.name}</span> <button type="button" class="quitar-archivo">Quitar</button>`;
-  previsualizacionImagen.querySelector('.quitar-archivo').addEventListener('click', () => {
-    campoImagen.value=''; previsualizacionImagen.hidden = true;
-  });
-});
-
-/* ============================= Campos: video ============================= */
-const campoVideo = document.getElementById('campo-video');
-const previsualizacionVideo = document.getElementById('previsualizacion-video');
-campoVideo.addEventListener('change', () => {
-  const archivo = campoVideo.files[0];
-  if (!archivo) { previsualizacionVideo.hidden = true; return; }
-  if (archivo.size > CONFIG.MAX_VIDEO_MB * 1024 * 1024){
-    mostrarToast(`El video pesa demasiado (máx. ${CONFIG.MAX_VIDEO_MB} MB, intenta uno más corto).`);
-    campoVideo.value = ''; previsualizacionVideo.hidden = true; return;
-  }
-  const url = URL.createObjectURL(archivo);
-  previsualizacionVideo.hidden = false;
-  previsualizacionVideo.innerHTML = `<video src="${url}" controls style="max-width:220px;"></video><span>${archivo.name}</span> <button type="button" class="quitar-archivo">Quitar</button>`;
-  previsualizacionVideo.querySelector('.quitar-archivo').addEventListener('click', () => {
-    campoVideo.value=''; previsualizacionVideo.hidden = true;
-  });
-});
-
-/* ============================= Campos: audio (subir o grabar) ============================= */
-const campoAudioArchivo = document.getElementById('campo-audio');
-const previsualizacionAudio = document.getElementById('previsualizacion-audio');
-
-document.getElementById('boton-subir-audio').addEventListener('click', () => campoAudioArchivo.click());
-
-let audioBlobGrabado = null;
-campoAudioArchivo.addEventListener('change', () => {
-  const archivo = campoAudioArchivo.files[0];
-  if (!archivo) return;
-  if (archivo.size > CONFIG.MAX_AUDIO_MB * 1024 * 1024){
-    mostrarToast(`El audio pesa demasiado (máx. ${CONFIG.MAX_AUDIO_MB} MB).`);
-    campoAudioArchivo.value = ''; return;
-  }
-  audioBlobGrabado = null;
-  mostrarPrevisualizacionAudio(URL.createObjectURL(archivo), archivo.name);
-});
-
-function mostrarPrevisualizacionAudio(url, etiqueta){
-  previsualizacionAudio.hidden = false;
-  previsualizacionAudio.innerHTML = `<audio controls src="${url}" style="height:32px;"></audio><span>${etiqueta}</span> <button type="button" class="quitar-archivo">Quitar</button>`;
-  previsualizacionAudio.querySelector('.quitar-archivo').addEventListener('click', () => {
-    campoAudioArchivo.value = ''; audioBlobGrabado = null;
-    previsualizacionAudio.hidden = true; previsualizacionAudio.innerHTML='';
-  });
-}
-
-let grabadora = null, trozosGrabacion = [];
-const botonGrabar = document.getElementById('boton-grabar-audio');
-const estadoGrabacion = document.getElementById('grabacion-estado');
-
-botonGrabar.addEventListener('click', async () => {
-  if (grabadora && grabadora.state === 'recording'){ grabadora.stop(); return; }
-  if (!navigator.mediaDevices || !window.MediaRecorder){
-    mostrarToast('Tu navegador no permite grabar audio aquí. Usa "Subir audio".');
-    return;
-  }
-  try{
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    trozosGrabacion = [];
-    grabadora = new MediaRecorder(stream);
-    grabadora.ondataavailable = (e) => trozosGrabacion.push(e.data);
-    grabadora.onstop = () => {
-      stream.getTracks().forEach(t => t.stop());
-      audioBlobGrabado = new Blob(trozosGrabacion, { type: 'audio/webm' });
-      campoAudioArchivo.value = '';
-      mostrarPrevisualizacionAudio(URL.createObjectURL(audioBlobGrabado), 'Mensaje de voz grabado');
-      estadoGrabacion.innerHTML = '';
-      botonGrabar.textContent = '🎙️ Grabar mensaje de voz';
-      botonGrabar.classList.remove('activo');
-    };
-    grabadora.start();
-    botonGrabar.textContent = '⏹️ Detener grabación';
-    botonGrabar.classList.add('activo');
-    estadoGrabacion.innerHTML = '<span class="punto-grabando"></span>Grabando...';
-  } catch(e){
-    console.error(e);
-    mostrarToast('No se pudo acceder al micrófono.');
-  }
-});
-
-/* ============================= Envío ============================= */
-function limpiarCampos(){
-  document.getElementById('formulario-estrella').reset();
-  previsualizacionImagen.hidden = true; previsualizacionImagen.innerHTML = '';
-  previsualizacionAudio.hidden = true; previsualizacionAudio.innerHTML = '';
-  previsualizacionVideo.hidden = true; previsualizacionVideo.innerHTML = '';
-  contadorMensaje.textContent = '0';
-  audioBlobGrabado = null;
-}
-
-document.getElementById('formulario-estrella').addEventListener('submit', (e) => {
-  e.preventDefault();
-
-  if (tipoActual === 'mensaje' && !campoMensaje.value.trim()){
-    mostrarToast('Escribe tu mensaje.'); return;
-  } else if (tipoActual === 'foto' && !campoImagen.files[0]){
-    mostrarToast('Elige una foto primero.'); return;
-  } else if (tipoActual === 'video' && !campoVideo.files[0]){
-    mostrarToast('Elige un video primero.'); return;
-  } else if (tipoActual === 'audio' && !audioBlobGrabado && !campoAudioArchivo.files[0]){
-    mostrarToast('Sube o graba un audio primero.'); return;
-  }
-
-  mostrarRepaso();
-});
-
-/* ============================= Repaso (vista previa antes de enviar) ============================= */
-function mostrarRepaso(){
-  document.getElementById('repaso-nombre').textContent = nombreActual;
-
-  ['repaso-grupo-mensaje','repaso-grupo-foto','repaso-grupo-video','repaso-grupo-audio'].forEach(id => {
-    document.getElementById(id).hidden = true;
-  });
-
-  if (tipoActual === 'mensaje'){
-    document.getElementById('repaso-mensaje').textContent = campoMensaje.value.trim();
-    document.getElementById('repaso-grupo-mensaje').hidden = false;
-  } else if (tipoActual === 'foto'){
-    document.getElementById('repaso-foto').src = URL.createObjectURL(campoImagen.files[0]);
-    document.getElementById('repaso-grupo-foto').hidden = false;
-  } else if (tipoActual === 'video'){
-    document.getElementById('repaso-video').src = URL.createObjectURL(campoVideo.files[0]);
-    document.getElementById('repaso-grupo-video').hidden = false;
-  } else if (tipoActual === 'audio'){
-    const archivo = audioBlobGrabado || campoAudioArchivo.files[0];
-    document.getElementById('repaso-audio').src = URL.createObjectURL(archivo);
-    document.getElementById('repaso-grupo-audio').hidden = false;
-  }
-
-  mostrarVista('vista-repaso');
-}
-
-document.getElementById('boton-editar-repaso').addEventListener('click', () => {
-  mostrarVista('vista-contenido');
-});
-
-document.getElementById('boton-confirmar-envio').addEventListener('click', async () => {
-  if (!puntoPendiente){
-    mostrarToast('Elige primero un lugar en el cielo.');
-    volverAlMapa();
-    return;
-  }
-
-  let mensaje = null, imagen_url = null, audio_url = null, video_url = null;
-  if (tipoActual === 'mensaje') mensaje = campoMensaje.value.trim();
-
-  const botonConfirmar = document.getElementById('boton-confirmar-envio');
-  botonConfirmar.disabled = true;
-  botonConfirmar.textContent = 'Enviando...';
-
-  try{
-    const diseno = elegirDisenoAleatorio();
-
-    if (sb){
-      if (tipoActual === 'foto') imagen_url = await subirArchivo(CONFIG.BUCKET_IMAGENES, campoImagen.files[0], campoImagen.files[0].name);
-      if (tipoActual === 'video') video_url = await subirArchivo(CONFIG.BUCKET_VIDEOS, campoVideo.files[0], campoVideo.files[0].name);
-      if (tipoActual === 'audio'){
-        if (audioBlobGrabado) audio_url = await subirArchivo(CONFIG.BUCKET_AUDIOS, audioBlobGrabado, 'grabacion.webm');
-        else audio_url = await subirArchivo(CONFIG.BUCKET_AUDIOS, campoAudioArchivo.files[0], campoAudioArchivo.files[0].name);
-      }
-
-      const fila = { nombre: nombreActual, email: correoActual, tipo: tipoActual, mensaje, imagen_url, audio_url, video_url, x: puntoPendiente.x, y: puntoPendiente.y, diseno };
-      const { data, error } = await sb.from('estrellas').insert([fila]).select();
-      if (error) throw error;
-      if (data && data[0]) misEstrellas.push(data[0]);
-    } else {
-      if (tipoActual === 'foto') imagen_url = URL.createObjectURL(campoImagen.files[0]);
-      if (tipoActual === 'video') video_url = URL.createObjectURL(campoVideo.files[0]);
-      if (tipoActual === 'audio') audio_url = URL.createObjectURL(audioBlobGrabado || campoAudioArchivo.files[0]);
-      const filaDemo = {
-        id: 'demo-' + Date.now() + '-' + Math.random().toString(16).slice(2),
-        nombre: nombreActual, email: correoActual, tipo: tipoActual, mensaje, imagen_url, audio_url, video_url,
-        x: puntoPendiente.x, y: puntoPendiente.y, diseno, created_at: new Date().toISOString(),
-      };
-      estrellasDemoLocal.push(filaDemo);
-      misEstrellas.push(filaDemo);
-    }
-
-    guardarIdentidad(nombreActual, correoActual);
-    enviosSesion.push({ tipo: tipoActual });
-    puntoPendiente = null;
-    mostrarConfirmacion();
-  } catch(err){
-    console.error(err);
-    mostrarToast('Algo salió mal al enviar tu estrella. Intenta de nuevo.');
-  } finally {
-    botonConfirmar.disabled = false;
-    botonConfirmar.textContent = 'Confirmar y enviar ✨';
-  }
-});
-
-function mostrarConfirmacion(){
-  document.getElementById('nombre-confirmacion').textContent = nombreActual;
-  const lista = document.getElementById('lista-envios');
-  lista.innerHTML = '';
-  enviosSesion.forEach(envio => {
-    const li = document.createElement('li');
-    li.innerHTML = `<span class="flecha">→</span> ${etiquetasTipo[envio.tipo]}`;
-    lista.appendChild(li);
-  });
-  mostrarVista('vista-confirmacion');
-}
-
-document.getElementById('boton-enviar-otra').addEventListener('click', () => {
-  limpiarCampos();
-  tipoActual = null;
-  actualizarCamposIdentidad();
-  renderizarCielo();
-  mostrarVista('vista-bienvenida');
-});
-
-cargarCielo();
 </script>
 </body>
 </html>
