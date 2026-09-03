@@ -117,7 +117,7 @@ header.encabezado .titulo{
   pointer-events:none;
 }
 .capa-fondo{ background-image: url('assets/fondo.png'); z-index:0; }
-.capa-efectos{ background-image: url('assets/capa-efectos.png'); z-index:1; }
+.capa-efectos{ background-image: url('assets/capa-efectos.png'); z-index:1; opacity: 0.2 }
 
 #lineas-constelacion{
   position:absolute; inset:0; width:100%; height:100%; pointer-events:none;
